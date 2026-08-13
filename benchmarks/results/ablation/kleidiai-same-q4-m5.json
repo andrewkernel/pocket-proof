@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "id": "ablation-kleidiai-same-q4-m5-2026-08-13",
+  "createdAt": "2026-08-13",
+  "status": "complete",
+  "purpose": "Isolate the KleidiAI build switch from quantization on the target Apple M5.",
+  "system": {
+    "architecture": "arm64",
+    "chip": "Apple M5",
+    "os": "macOS 26.5.2",
+    "memoryBytes": 17179869184
+  },
+  "invariants": {
+    "model": "Whisper small.en Q4_0",
+    "modelPath": "models/ggml-small.en-q4_0.bin",
+    "modelSha256": "37eb5db9875dae4fdf9b2727459ccbf2ee8ba9ef5590655bb13a7b573aae241b",
+    "sample": "samples/jfk.wav",
+    "samplePath": "samples/jfk.wav",
+    "threads": 4,
+    "backend": "CPU only; Metal and BLAS disabled",
+    "sttRunnerRevision": "bdabdb945f373651442a3693c0cd55d9af690e32",
+    "whisperCppRevision": "2eeeba56e9edd762b4b38467bab96c2517163158 (v1.8.3)",
+    "order": "Seven paired runs with alternating lane order",
+    "metric": "whisper_print_timings total time (ms)",
+    "warmup": "No designated warmup was run for the 14 saved ablation invocations. Each saved measurement is one fresh whisper-cli process. Earlier experiments occurred in the same interactive session, so cold-cache state was not controlled.",
+    "timestamps": "No per-run timestamps were captured. Saved evidence records the date 2026-08-13; the summary artifact was written at 2026-08-13 17:00:25 local filesystem time, after the measurements."
+  },
+  "buildProvenance": {
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "cmake": "4.4.2",
+    "configuration": "Release; BUILD_EXECUTABLE=ON; BUILD_BENCHMARK=ON; BUILD_UNIT_TESTS=OFF; BUILD_JNI_LIB=OFF; GGML_METAL=OFF; GGML_BLAS=OFF",
+    "off": {
+      "configure": "cmake -B build-kleidiai-off --preset=native -DUSE_KLEIDIAI=OFF -DBUILD_EXECUTABLE=ON -DBUILD_BENCHMARK=ON -DBUILD_UNIT_TESTS=OFF -DBUILD_JNI_LIB=OFF -DGGML_METAL=OFF -DGGML_BLAS=OFF",
+      "binary": "build-kleidiai-off/bin/whisper-cli",
+      "binarySha256": "49b810861aba0e1c479f830ec4cf0c8c1388fcffc30e595efc659969f28341f7",
+      "binaryFormat": "Mach-O 64-bit executable arm64"
+    },
+    "on": {
+      "configure": "cmake -B build-kleidiai-on --preset=native -DUSE_KLEIDIAI=ON -DBUILD_EXECUTABLE=ON -DBUILD_BENCHMARK=ON -DBUILD_UNIT_TESTS=OFF -DBUILD_JNI_LIB=OFF -DGGML_METAL=OFF -DGGML_BLAS=OFF",
+      "binary": "build-kleidiai-on/bin/whisper-cli",
+      "binarySha256": "d71115b73f94d4ea56ad907b00c7221f8925348f974cc037a48d72f3cd3f977f",
+      "binaryFormat": "Mach-O 64-bit executable arm64"
+    }
+  },
+  "commands": {
+    "kleidiaiOff": "vendor/stt-runner/build-reference/bin/whisper-cli -ng -t 4 -l en -m models/ggml-small.en-q4_0.bin -f samples/jfk.wav -nt",
+    "kleidiaiOn": "GGML_KLEIDIAI_SME=0 vendor/stt-runner/build-kleidiai/bin/whisper-cli -ng -t 4 -l en -m models/ggml-small.en-q4_0.bin -f samples/jfk.wav -nt",
+    "pathPolicy": "Absolute local prefixes from the captured commands were replaced with their repository-relative setup-runtime equivalents; flags and argument order are unchanged."
+  },
+  "profiles": [
+    {
+      "id": "kleidiai-off",
+      "build": { "USE_KLEIDIAI": false },
+      "totalMs": [1378.82, 1416.6, 1436.04, 1489.92, 1507.26, 1522.26, 1523.76],
+      "meanMs": 1467.81,
+      "sampleStddevMs": 57.29,
+      "medianMs": 1489.92,
+      "minMs": 1378.82,
+      "maxMs": 1523.76
+    },
+    {
+      "id": "kleidiai-on",
+      "build": { "USE_KLEIDIAI": true },
+      "environment": { "GGML_KLEIDIAI_SME": "0" },
+      "totalMs": [1601.82, 1396.2, 1445.15, 1473.76, 1517.08, 1497.63, 1518.93],
+      "meanMs": 1492.94,
+      "sampleStddevMs": 64.74,
+      "medianMs": 1497.63,
+      "minMs": 1396.2,
+      "maxMs": 1601.82
+    }
+  ],
+  "pairedRecords": [
+    { "pair": 1, "order": "off_then_on", "offMs": 1378.82, "onMs": 1601.82, "offMinusOnMs": -223.0 },
+    { "pair": 2, "order": "on_then_off", "offMs": 1416.6, "onMs": 1396.2, "offMinusOnMs": 20.4 },
+    { "pair": 3, "order": "off_then_on", "offMs": 1436.04, "onMs": 1445.15, "offMinusOnMs": -9.11 },
+    { "pair": 4, "order": "on_then_off", "offMs": 1489.92, "onMs": 1473.76, "offMinusOnMs": 16.16 },
+    { "pair": 5, "order": "off_then_on", "offMs": 1507.26, "onMs": 1517.08, "offMinusOnMs": -9.82 },
+    { "pair": 6, "order": "on_then_off", "offMs": 1522.26, "onMs": 1497.63, "offMinusOnMs": 24.63 },
+    { "pair": 7, "order": "off_then_on", "offMs": 1523.76, "onMs": 1518.93, "offMinusOnMs": 4.83 }
+  ],
+  "comparison": {
+    "kleidiaiOnVsOffSpeedup": 0.9832,
+    "meanOffMinusOnMs": -25.13,
+    "sampleStddevOffMinusOnMs": 88.31,
+    "medianOffMinusOnMs": 4.83,
+    "conclusion": "No observed speedup in this sample. Pocket Proof does not attribute its primary quantization result to KleidiAI."
+  },
+  "evidence": {
+    "rawPairs": "The complete 14-run capture is embedded in pairedRecords and profiles.totalMs.",
+    "capturePolicy": "Private workstation path prefixes were removed from this public artifact; no timing or command flag was changed."
+  }
+}
