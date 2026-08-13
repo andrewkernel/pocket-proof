@@ -1,5 +1,7 @@
 # Pocket Proof — Devpost draft
 
+Source: <https://github.com/andrewkernel/pocket-proof>
+
 ## Project overview
 
 Pocket Proof is an interactive, reproducible optimization laboratory for local speech-to-text on Arm-powered client hardware. It makes one question visible: **what does a verified optimization change for a real local AI workload?**
@@ -37,7 +39,7 @@ After setup, the benchmark path uses local model artifacts and local inference; 
 
 ```sh
 npm install
-./scripts/setup-runtime.sh
+bash scripts/setup-runtime.sh
 npm run benchmark -- --runs 5 --warmup 1 --threads 4
 npm run verify
 npm run dev
