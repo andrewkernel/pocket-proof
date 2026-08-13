@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "primaryExperiment": {
+    "modelFamily": "Whisper small.en",
+    "input": "samples/jfk.wav",
+    "threads": 4,
+    "warmup": 1,
+    "iterations": 5,
+    "invariants": ["same model architecture and weights source", "same input samples", "same thread count", "same STT-Runner revision", "same native arm64 CPU runtime"],
+    "profiles": [
+      { "id": "reference", "label": "FP16 Reference", "model": "ggml-small.en.bin", "quantization": "F16", "build": { "USE_KLEIDIAI": false } },
+      { "id": "optimized", "label": "Q4 Optimized", "model": "ggml-small.en-q4_0.bin", "quantization": "Q4_0", "build": { "USE_KLEIDIAI": false } }
+    ],
+    "rejectedIntervention": "KleidiAI Q4_0 was measured separately but did not produce a repeatable benefit on this Apple M5 configuration."
+  }
+}

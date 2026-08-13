@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketproof.dev/schemas/benchmark-report-v1.json",
+  "title": "Pocket Proof immutable benchmark report",
+  "description": "A self-contained, raw-run-backed report for the primary native Arm64 experiment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "id", "createdAt", "status", "source", "strategy", "executionStrategy",
+    "system", "input", "methodology", "profiles", "measurements", "aggregates", "comparison",
+    "findings", "provenance"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^run-[A-Za-z0-9-]+$" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "status": { "const": "complete" },
+    "source": { "enum": ["recorded", "live"] },
+    "strategy": { "const": "sequential-interleaved" },
+    "executionStrategy": { "const": "sequential-interleaved" },
+    "system": { "$ref": "#/$defs/system" },
+    "input": { "$ref": "#/$defs/input" },
+    "methodology": { "$ref": "#/$defs/methodology" },
+    "profiles": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/profile" }
+    },
+    "measurements": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/measurement" }
+    },
+    "aggregates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference", "optimized"],
+      "properties": {
+        "reference": { "$ref": "#/$defs/aggregate" },
+        "optimized": { "$ref": "#/$defs/aggregate" }
+      }
+    },
+    "comparison": { "$ref": "#/$defs/comparison" },
+    "findings": { "$ref": "#/$defs/findings" },
+    "provenance": { "$ref": "#/$defs/provenance" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "revision": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "nonNegativeNumber": { "type": "number", "minimum": 0 },
+    "positiveInteger": { "type": "integer", "minimum": 1 },
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["architecture", "os", "osVersion", "kernelRelease", "translated", "model", "modelIdentifier", "chip", "cores", "memoryBytes", "collectedAt"],
+      "properties": {
+        "architecture": { "const": "arm64" },
+        "os": { "const": "macOS" },
+        "osVersion": { "type": "string", "minLength": 1 },
+        "kernelRelease": { "type": "string", "minLength": 1 },
+        "translated": { "const": false },
+        "model": { "type": "string", "minLength": 1 },
+        "modelIdentifier": { "type": "string", "minLength": 1 },
+        "chip": { "type": "string", "minLength": 1 },
+        "cores": { "type": "string", "minLength": 1 },
+        "memoryBytes": { "$ref": "#/$defs/positiveInteger" },
+        "collectedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "sha256", "durationMs", "referenceTranscript"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "pattern": "^(?!/).+" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "durationMs": { "$ref": "#/$defs/positiveInteger" },
+        "referenceTranscript": { "type": "string", "minLength": 1 }
+      }
+    },
+    "methodology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["measuredRuns", "warmupRuns", "threads", "order", "clock", "commandSemantics"],
+      "properties": {
+        "measuredRuns": { "$ref": "#/$defs/positiveInteger" },
+        "warmupRuns": { "type": "integer", "minimum": 0 },
+        "threads": { "$ref": "#/$defs/positiveInteger" },
+        "order": { "const": "alternating AB/BA" },
+        "clock": { "type": "string", "minLength": 1 },
+        "commandSemantics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["language", "gpu", "decoder", "note"],
+          "properties": {
+            "language": { "type": "string", "minLength": 1 },
+            "gpu": { "type": "string", "minLength": 1 },
+            "decoder": { "type": "string", "minLength": 1 },
+            "note": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "precision", "threads", "backend", "model", "runtime", "interventions"],
+      "properties": {
+        "id": { "enum": ["reference", "optimized"] },
+        "label": { "type": "string", "minLength": 1 },
+        "precision": { "enum": ["F16", "Q4_0"] },
+        "threads": { "$ref": "#/$defs/positiveInteger" },
+        "backend": { "const": "whisper.cpp CPU" },
+        "model": { "$ref": "#/$defs/modelArtifact" },
+        "runtime": { "$ref": "#/$defs/runtimeArtifact" },
+        "interventions": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "modelArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "bytes", "sha256", "precision", "format"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "bytes": { "$ref": "#/$defs/positiveInteger" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "precision": { "enum": ["F16", "Q4_0"] },
+        "format": { "type": "string", "minLength": 1 }
+      }
+    },
+    "runtimeArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "file", "lipo", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^(?!/).+" },
+        "file": { "type": "string", "pattern": "arm64" },
+        "lipo": { "type": "string", "pattern": "arm64" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileId", "phase", "sequence", "startedAt", "command", "timing", "memory", "transcript", "quality"],
+      "properties": {
+        "profileId": { "enum": ["reference", "optimized"] },
+        "phase": { "enum": ["warmup", "measured"] },
+        "sequence": { "$ref": "#/$defs/positiveInteger" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "command": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "timing": { "$ref": "#/$defs/timing" },
+        "memory": { "$ref": "#/$defs/memory" },
+        "transcript": { "$ref": "#/$defs/transcript" },
+        "quality": { "$ref": "#/$defs/quality" }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inferenceMs", "totalMs", "modelLoadMs", "encodeMs", "decodeMs"],
+      "properties": {
+        "inferenceMs": { "$ref": "#/$defs/nonNegativeNumber" },
+        "totalMs": { "$ref": "#/$defs/nonNegativeNumber" },
+        "modelLoadMs": { "$ref": "#/$defs/nonNegativeNumber" },
+        "encodeMs": { "$ref": "#/$defs/nonNegativeNumber" },
+        "decodeMs": { "$ref": "#/$defs/nonNegativeNumber" }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["peakRssBytes", "peakFootprintBytes"],
+      "properties": {
+        "peakRssBytes": { "$ref": "#/$defs/positiveInteger" },
+        "peakFootprintBytes": { "$ref": "#/$defs/positiveInteger" }
+      }
+    },
+    "transcript": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": { "text": { "type": "string", "minLength": 1 } }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wer", "normalizedWer"],
+      "properties": {
+        "wer": { "$ref": "#/$defs/nonNegativeNumber" },
+        "normalizedWer": { "$ref": "#/$defs/nonNegativeNumber" }
+      }
+    },
+    "summaryStatistic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "median", "min", "max", "mean", "stddev"],
+      "properties": {
+        "count": { "$ref": "#/$defs/positiveInteger" },
+        "median": { "$ref": "#/$defs/nonNegativeNumber" },
+        "min": { "$ref": "#/$defs/nonNegativeNumber" },
+        "max": { "$ref": "#/$defs/nonNegativeNumber" },
+        "mean": { "$ref": "#/$defs/nonNegativeNumber" },
+        "stddev": { "$ref": "#/$defs/nonNegativeNumber" }
+      }
+    },
+    "aggregate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inferenceMs", "totalMs", "peakRssBytes", "modelBytes", "wer", "runs", "statistics"],
+      "properties": {
+        "inferenceMs": { "$ref": "#/$defs/nonNegativeNumber" },
+        "totalMs": { "$ref": "#/$defs/nonNegativeNumber" },
+        "peakRssBytes": { "$ref": "#/$defs/positiveInteger" },
+        "modelBytes": { "$ref": "#/$defs/positiveInteger" },
+        "wer": { "$ref": "#/$defs/nonNegativeNumber" },
+        "runs": { "$ref": "#/$defs/positiveInteger" },
+        "statistics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["inferenceMs", "totalMs", "modelLoadMs", "encodeMs", "peakRssBytes", "wer"],
+          "properties": {
+            "inferenceMs": { "$ref": "#/$defs/summaryStatistic" },
+            "totalMs": { "$ref": "#/$defs/summaryStatistic" },
+            "modelLoadMs": { "$ref": "#/$defs/summaryStatistic" },
+            "encodeMs": { "$ref": "#/$defs/summaryStatistic" },
+            "peakRssBytes": { "$ref": "#/$defs/summaryStatistic" },
+            "wer": { "$ref": "#/$defs/summaryStatistic" }
+          }
+        }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["speedup", "latencyReductionPct", "memoryReductionPct", "modelReductionPct", "sampleQualityRetentionPct", "transcriptExactMatch"],
+      "properties": {
+        "speedup": { "$ref": "#/$defs/nonNegativeNumber" },
+        "latencyReductionPct": { "type": "number" },
+        "memoryReductionPct": { "type": "number" },
+        "modelReductionPct": { "type": "number" },
+        "sampleQualityRetentionPct": { "$ref": "#/$defs/nonNegativeNumber" },
+        "transcriptExactMatch": { "type": "boolean" }
+      }
+    },
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectedIntervention", "rejectedIntervention"],
+      "properties": {
+        "selectedIntervention": { "type": "string", "minLength": 1 },
+        "rejectedIntervention": { "type": "string", "minLength": 1 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appVersion", "sttRunnerRevision", "modelRepositoryRevision", "configHash"],
+      "properties": {
+        "appVersion": { "type": "string", "minLength": 1 },
+        "gitCommit": { "$ref": "#/$defs/revision" },
+        "sttRunnerRevision": { "$ref": "#/$defs/revision" },
+        "modelRepositoryRevision": { "$ref": "#/$defs/revision" },
+        "configHash": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}
