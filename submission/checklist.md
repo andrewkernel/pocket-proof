@@ -3,11 +3,11 @@
 ## Required project readiness
 
 - [ ] Select **Mobile AI** on Devpost.
-- [ ] Public repository is reachable, functional, and includes visible MIT license.
+- [x] Public repository is reachable, functional, and includes visible MIT license.
 - [x] Repository includes source, assets required to run, setup instructions, and validation instructions.
 - [x] Record what was newly created or significantly updated during the submission period.
 - [x] Verify all third-party models, audio, code, and visuals are authorized; update notices.
-- [ ] Provide free judge access to the working project/test build through the judging period.
+- [x] Provide free judge access to the working project/test build through the judging period.
 - [x] Ensure all submission materials and testing instructions are English.
 
 These requirements come from the [official rules](https://arm-ai-optimization-challenge.devpost.com/rules).
