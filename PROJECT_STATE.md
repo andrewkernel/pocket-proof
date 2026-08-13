@@ -23,7 +23,8 @@ Build Pocket Proof: an interactive, reproducible optimization laboratory for loc
 - Applied and documented the AI Design Skills reference, including bundled typography, evidence-first responsive layouts, semantic live states, and keyboard accessibility.
 - Exercised the browser-triggered benchmark end to end and verified that it returns the new live report without replacing the reviewed featured artifact.
 - Completed an empty-directory clone rehearsal of commit `dabe806`: `npm ci`, tests, typecheck, build, runtime provisioning, checksum verification, native Arm64 inspection, a full five-run benchmark, report validation, local launch, and the browser-triggered Judge Mode race all passed.
-- Published the complete 68-file release at <https://github.com/andrewkernel/pocket-proof>. An anonymous clone matched every local Git blob and passed dependency installation, all 17 tests, typecheck, production build, and the dependency audit.
+- Published the complete 68-file release at <https://github.com/andrewkernel/pocket-proof>. An anonymous clone matched every local Git blob and passed dependency installation, all 17 tests, typecheck, production build, the dependency audit, runtime provisioning, checksum and native Arm64 verification, a fresh five-run benchmark, and report validation.
+- Confirmed the final GitHub Actions workflow is green on `ubuntu-latest`: install, tests, typecheck, build, featured-report verification, setup-script syntax, and the dependency-free release-content secret scan all pass.
 
 ## Blocked
 
@@ -44,7 +45,7 @@ Build Pocket Proof: an interactive, reproducible optimization laboratory for loc
 
 - Challenge deadline: 2026-08-14 16:00 PDT.
 - Record and upload the optional under-three-minute demo video before final Devpost submission.
-- Confirm the first GitHub Actions run and complete the final Devpost fields.
+- Complete the final Devpost fields and submit before the deadline.
 
 ## Next highest-leverage task
 
