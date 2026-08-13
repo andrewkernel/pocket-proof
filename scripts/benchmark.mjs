@@ -114,7 +114,7 @@ function summarize(profile, measurements, modelMeta) {
 
 const runtime = await resolveRuntime();
 if (!runtime.ready) {
-  console.error("Pocket Proof benchmark is not ready. Run ./scripts/setup-runtime.sh first.");
+  console.error("Pocket Proof benchmark is not ready. Run bash scripts/setup-runtime.sh first.");
   console.error(JSON.stringify(runtime.checks, null, 2));
   process.exit(1);
 }
