@@ -1,0 +1,461 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { loadEvidence, normalizeReport, startRace } from "./api";
+import type { Aggregate, Profile, Report, SystemInfo } from "./types";
+
+type LaneState = Record<string, { status: string; elapsedMs?: number; rssBytes?: number }>;
+
+const formatMs = (value?: number) => value === undefined
+  ? "—"
+  : value >= 1000
+    ? `${(value / 1000).toFixed(value >= 10000 ? 1 : 2)} s`
+    : `${Math.round(value)} ms`;
+
+const formatBytes = (value?: number) => value === undefined
+  ? "—"
+  : value >= 1024 ** 3
+    ? `${(value / 1024 ** 3).toFixed(2)} GB`
+    : `${(value / 1024 ** 2).toFixed(0)} MB`;
+
+const percent = (value?: number, digits = 1) => value === undefined ? "—" : `${(value * 100).toFixed(digits)}%`;
+const profileLabel = (profile: Profile) => [
+  profile.precision ?? profile.model?.precision,
+  profile.backend,
+  profile.threads ? `${profile.threads} threads` : undefined,
+].filter(Boolean).join(" · ");
+
+function metric(report: Report, profile: Profile): Aggregate {
+  const aggregate = report.aggregates[profile.id] ?? {};
+  const candidate = report.measurements.filter((item) => item.profileId === profile.id && item.phase !== "warmup").at(-1);
+  return {
+    inferenceMs: aggregate.inferenceMs ?? candidate?.timing?.inferenceMs,
+    totalMs: aggregate.totalMs ?? candidate?.timing?.totalMs,
+    peakRssBytes: aggregate.peakRssBytes ?? candidate?.memory?.peakRssBytes,
+    modelBytes: aggregate.modelBytes ?? profile.model?.bytes,
+    wer: aggregate.wer ?? candidate?.quality?.normalizedWer ?? candidate?.quality?.wer,
+    runs: aggregate.runs,
+  };
+}
+
+function useComparison(report: Report | null) {
+  return useMemo(() => {
+    if (!report || report.profiles.length < 2) return null;
+    const [reference, optimized] = report.profiles;
+    const base = metric(report, reference);
+    const better = metric(report, optimized);
+    const ratio = base.inferenceMs && better.inferenceMs ? base.inferenceMs / better.inferenceMs : undefined;
+    const memory = base.peakRssBytes && better.peakRssBytes ? 1 - better.peakRssBytes / base.peakRssBytes : undefined;
+    const size = base.modelBytes && better.modelBytes ? 1 - better.modelBytes / base.modelBytes : undefined;
+    const qualityDelta = base.wer !== undefined && better.wer !== undefined ? better.wer - base.wer : undefined;
+    return { reference, optimized, base, better, ratio, memory, size, qualityDelta };
+  }, [report]);
+}
+
+function ProofStrip({ system, report }: { system?: SystemInfo; report: Report | null }) {
+  const architecture = system?.architecture ?? report?.system?.architecture;
+  const binary = system?.binaryArchitecture ?? report?.system?.binaryArchitecture ?? architecture;
+  return (
+    <div className="proof-strip" aria-label="Local inference proof">
+      <span><i className="proof-dot" aria-hidden="true" /> Local inference</span>
+      <span>{architecture ? architecture.toUpperCase() : "Architecture pending"}</span>
+      <span>{binary ? `Native binary: ${binary}` : "Network not required after setup"}</span>
+    </div>
+  );
+}
+
+function Waveform({ active = false }: { active?: boolean }) {
+  const heights = [12, 21, 37, 28, 56, 30, 18, 44, 65, 39, 20, 32, 53, 70, 42, 28, 48, 34, 18, 30, 50, 63, 37, 25, 40, 21, 14, 35, 59, 45, 24, 36, 64, 40, 22, 16, 33, 52, 29, 17, 41, 66, 38, 20, 46, 31, 15, 25];
+  return (
+    <svg className={`waveform ${active ? "is-active" : ""}`} viewBox="0 0 480 82" role="img" aria-label="Audio waveform">
+      <title>Audio waveform</title>
+      {heights.map((height, index) => (
+        <line key={index} x1={5 + index * 10} y1={(82 - height) / 2} x2={5 + index * 10} y2={(82 + height) / 2} />
+      ))}
+    </svg>
+  );
+}
+
+function Lane({ profile, info, result, mode }: {
+  profile: Profile;
+  info?: LaneState[string];
+  result?: Aggregate;
+  mode: "reference" | "optimized";
+}) {
+  const status = info?.status ?? (result ? "measured" : "ready");
+  return (
+    <article className={`lane lane--${mode}`} aria-label={`${profile.label} benchmark lane`}>
+      <header>
+        <span className="lane-kicker">{mode === "reference" ? "Reference path" : "Recommended path"}</span>
+        <span className={`status status--${status.replace(/\s+/g, "-")}`}>{status}</span>
+      </header>
+      <h3>{profile.label}</h3>
+      <p className="lane-config">{profileLabel(profile) || "Configuration awaiting evidence"}</p>
+      <Waveform active={status === "running"} />
+      <dl className="lane-metrics">
+        <div><dt>Inference</dt><dd>{formatMs(info?.elapsedMs ?? result?.inferenceMs)}</dd></div>
+        <div><dt>Peak RSS</dt><dd>{formatBytes(info?.rssBytes ?? result?.peakRssBytes)}</dd></div>
+        <div><dt>Artifact</dt><dd>{formatBytes(result?.modelBytes ?? profile.model?.bytes)}</dd></div>
+      </dl>
+    </article>
+  );
+}
+
+function LoadingEvidence() {
+  return (
+    <div className="loading-evidence" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">Loading measured benchmark evidence</span>
+      <div className="skeleton-lane" aria-hidden="true"><i /><i /><i /></div>
+      <div className="skeleton-lane" aria-hidden="true"><i /><i /><i /></div>
+    </div>
+  );
+}
+
+function TaglineReveal() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
+  const lines = [
+    "One workload. One changed variable.",
+    "Every claim tied to the raw run.",
+  ];
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    }, { threshold: 0.35 });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  let wordIndex = 0;
+  return (
+    <section ref={sectionRef} className={`tagline-reveal ${visible ? "is-visible" : ""}`} aria-label="Pocket Proof evidence standard">
+      <p>
+        {lines.map((line) => (
+          <span className="tagline-line" key={line}>
+            {line.split(" ").map((word) => {
+              const delay = wordIndex * 42;
+              wordIndex += 1;
+              return <span className="tagline-word" style={{ transitionDelay: `${delay}ms` }} key={`${word}-${wordIndex}`}>{word} </span>;
+            })}
+          </span>
+        ))}
+      </p>
+    </section>
+  );
+}
+
+function ResultReveal({ report }: { report: Report }) {
+  const comparison = useComparison(report);
+  if (!comparison) return null;
+  const items = [
+    { value: comparison.ratio !== undefined ? `${comparison.ratio.toFixed(2)}×` : "—", label: "median inference ratio", tone: "primary" },
+    { value: comparison.memory !== undefined ? percent(comparison.memory) : "—", label: "less peak RSS" },
+    { value: comparison.size !== undefined ? percent(comparison.size) : "—", label: "smaller model" },
+    { value: comparison.qualityDelta !== undefined ? `${comparison.qualityDelta >= 0 ? "+" : ""}${percent(comparison.qualityDelta)}` : "—", label: "single clip WER Δ" },
+  ];
+  return (
+    <section className="reveal" aria-labelledby="reveal-title">
+      <div>
+        <p className="eyebrow">Measured comparison</p>
+        <h2 id="reveal-title">The evidence, not a promise.</h2>
+        <p className="reveal-caption">Every value derives from this report’s measured profile aggregates. WER and transcript agreement describe this one 11 second sample only.</p>
+      </div>
+      <div className="reveal-grid">
+        {items.map((item) => (
+          <article className={item.tone ? "reveal-metric reveal-metric--primary" : "reveal-metric"} key={item.label}>
+            <strong>{item.value}</strong><span>{item.label}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function diffWords(reference: string, candidate: string) {
+  const referenceWords = reference.split(/\s+/).filter(Boolean);
+  const candidateWords = candidate.split(/\s+/).filter(Boolean);
+  const rows: Array<{ word: string; kind: "same" | "removed" | "added" }> = [];
+  let referenceIndex = 0;
+  let candidateIndex = 0;
+  while (referenceIndex < referenceWords.length || candidateIndex < candidateWords.length) {
+    if (referenceWords[referenceIndex] === candidateWords[candidateIndex]) {
+      rows.push({ word: referenceWords[referenceIndex], kind: "same" });
+      referenceIndex += 1;
+      candidateIndex += 1;
+    } else if (referenceWords[referenceIndex] && !candidateWords.includes(referenceWords[referenceIndex], candidateIndex + 1)) {
+      rows.push({ word: referenceWords[referenceIndex], kind: "removed" });
+      referenceIndex += 1;
+    } else if (candidateWords[candidateIndex]) {
+      rows.push({ word: candidateWords[candidateIndex], kind: "added" });
+      candidateIndex += 1;
+    } else {
+      referenceIndex += 1;
+    }
+  }
+  return rows;
+}
+
+function TranscriptEvidence({ report }: { report: Report }) {
+  const comparison = useComparison(report);
+  if (!comparison) return null;
+  const reference = report.measurements.filter((item) => item.profileId === comparison.reference.id).at(-1)?.transcript?.text;
+  const optimized = report.measurements.filter((item) => item.profileId === comparison.optimized.id).at(-1)?.transcript?.text;
+  const differences = reference && optimized ? diffWords(reference, optimized) : [];
+  const changed = differences.some((part) => part.kind !== "same");
+  return (
+    <section className="evidence-section" aria-labelledby="transcript-title">
+      <div className="section-title">
+        <div><p className="eyebrow">Single clip quality evidence</p><h2 id="transcript-title">Transcript comparison</h2></div>
+        <span className="quality-chip">Clip WER: {comparison.better.wer === undefined ? "not measured" : percent(comparison.better.wer)}</span>
+      </div>
+      {reference && optimized ? (
+        <div className="transcripts">
+          <article><h3>{comparison.reference.label}</h3><p>{reference}</p></article>
+          <article>
+            <h3>{comparison.optimized.label}</h3>
+            <p>{differences.map((part, index) => (
+              <span key={`${part.word}-${index}`} className={`diff diff--${part.kind}`} aria-label={part.kind === "same" ? undefined : `${part.kind} word: ${part.word}`}>{part.word} </span>
+            ))}</p>
+            {changed ? (
+              <p className="diff-legend"><span className="diff diff--added">added</span><span className="diff diff--removed">removed</span></p>
+            ) : <p className="exact-match">Exact normalized transcript match on this clip</p>}
+          </article>
+        </div>
+      ) : <p className="empty-inline">A transcript diff appears when both measured transcript artifacts are present. Quality values are never inferred from performance data.</p>}
+    </section>
+  );
+}
+
+function ProfileSummary({ report }: { report: Report }) {
+  const profiles = report.profiles.map((profile) => ({ profile, data: metric(report, profile) }));
+  const sameTranscript = report.comparison?.transcriptExactMatch === true;
+  const [reference, optimized] = profiles;
+  const lowerLatency = reference?.data.inferenceMs !== undefined
+    && optimized?.data.inferenceMs !== undefined
+    && optimized.data.inferenceMs < reference.data.inferenceMs;
+  const title = sameTranscript && lowerLatency
+    ? "Same transcript. Lower latency."
+    : "Measured quality and latency.";
+  const note = sameTranscript
+    ? "Both measured profiles produced the same normalized transcript on this single clip. Their latency remains directly comparable."
+    : "Latency and single clip WER come directly from this report. Inspect the transcript comparison above for any output differences.";
+  return (
+    <section className="evidence-section profile-section" aria-labelledby="profile-summary-title">
+      <div className="section-title"><div><p className="eyebrow">Measured profile summary</p><h2 id="profile-summary-title">{title}</h2></div></div>
+      <div className="profile-summary">
+        <p className="profile-summary-note">{note}</p>
+        <p className="table-scroll-cue">Scroll horizontally to inspect all columns.</p>
+        <div className="table-scroll" tabIndex={0} aria-label="Measured profile summary table, horizontally scrollable on small screens">
+          <table>
+            <thead><tr><th>Profile</th><th>Median inference</th><th>Single clip WER</th><th>Measured runs</th></tr></thead>
+            <tbody>{profiles.map(({ profile, data }) => (
+              <tr key={profile.id}><th scope="row">{profile.label}</th><td>{formatMs(data.inferenceMs)}</td><td>{data.wer === undefined ? "Not measured" : percent(data.wer)}</td><td>{data.runs ?? "—"}</td></tr>
+            ))}</tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function EvidenceDrawer({ report }: { report: Report }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const comparison = useComparison(report);
+  if (!comparison) return null;
+  const rows = [
+    ["What changed", <ul className="interventions">{report.profiles.map((profile) => <li key={profile.id}><strong>{profile.label}:</strong> {(profile.interventions?.length ? profile.interventions : [profileLabel(profile) || "No configuration metadata recorded"]).join(" · ")}</li>)}</ul>],
+    ["Method", <p>Strategy: {report.strategy ?? "not recorded"}. Reported comparison values use stored aggregate measurements; repetitions: {comparison.base.runs ?? "not recorded"} / {comparison.better.runs ?? "not recorded"}.</p>],
+    ["Raw provenance", <dl className="provenance"><div><dt>Report</dt><dd>{report.id}</dd></div><div><dt>Measured</dt><dd>{report.createdAt ? new Date(report.createdAt).toLocaleString() : "not recorded"}</dd></div><div><dt>Commit</dt><dd>{report.provenance?.gitCommit ?? "not recorded"}</dd></div><div><dt>Config hash</dt><dd>{report.provenance?.configHash ?? "not recorded"}</dd></div></dl>],
+  ] as const;
+  return (
+    <section className="evidence-section evidence-drawer" aria-label="Benchmark evidence">
+      {rows.map(([title, body]) => (
+        <div className="drawer-row" key={title}>
+          <button type="button" aria-expanded={open === title} onClick={() => setOpen(open === title ? null : title)}>
+            <span>{title}</span><span aria-hidden="true">{open === title ? "−" : "+"}</span>
+          </button>
+          {open === title && <div className="drawer-content">{body}</div>}
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function NoEvidence({ error, onRetry }: { error?: string; onRetry: () => void }) {
+  return (
+    <section className="no-evidence" aria-labelledby="empty-title">
+      <div className="empty-mark" aria-hidden="true">∕∕</div>
+      <p className="eyebrow">Evidence required</p>
+      <h2 id="empty-title">No benchmark result is loaded.</h2>
+      <p>Pocket Proof leaves comparison metrics blank until the benchmark service supplies a measured report. Run the local benchmark, or add a reviewed <code>featured-report.json</code> artifact.</p>
+      {error && <p className="error-note" role="alert">{error}</p>}
+      <button type="button" className="button button--secondary" onClick={onRetry}>Reload evidence</button>
+    </section>
+  );
+}
+
+export default function App() {
+  const [report, setReport] = useState<Report | null>(null);
+  const [system, setSystem] = useState<SystemInfo>();
+  const [origin, setOrigin] = useState<"api" | "fallback" | "none">("none");
+  const [loading, setLoading] = useState(true);
+  const [running, setRunning] = useState(false);
+  const [error, setError] = useState<string>();
+  const [lanes, setLanes] = useState<LaneState>({});
+  const resultRef = useRef<HTMLElement>(null);
+  const comparison = useComparison(report);
+
+  const refresh = async () => {
+    setLoading(true);
+    setError(undefined);
+    const loaded = await loadEvidence();
+    setReport(loaded.report);
+    setSystem(loaded.system);
+    setOrigin(loaded.origin);
+    setLoading(false);
+  };
+
+  useEffect(() => { void refresh(); }, []);
+
+  const run = async () => {
+    setRunning(true);
+    setError(undefined);
+    setLanes({ reference: { status: "validating" }, optimized: { status: "validating" } });
+    try {
+      await startRace((event) => {
+        if (event.type === "lane.status") {
+          const update = event as { profileId: string; status: string };
+          setLanes((old) => ({ ...old, [update.profileId]: { ...old[update.profileId], status: update.status } }));
+        }
+        if (event.type === "lane.metric") {
+          const update = event as { profileId: string; elapsedMs?: number; rssBytes?: number };
+          setLanes((old) => ({
+            ...old,
+            [update.profileId]: {
+              ...old[update.profileId],
+              status: old[update.profileId]?.status ?? "running",
+              elapsedMs: update.elapsedMs ?? old[update.profileId]?.elapsedMs,
+              rssBytes: update.rssBytes ?? old[update.profileId]?.rssBytes,
+            },
+          }));
+        }
+        if (event.type === "race.complete") {
+          const value = normalizeReport(event.report);
+          if (value) {
+            setReport(value);
+            setOrigin("api");
+            requestAnimationFrame(() => resultRef.current?.focus());
+          } else {
+            setError("The completed run did not contain a valid benchmark report.");
+          }
+          setLanes({});
+          setRunning(false);
+        }
+        if (event.type === "race.error") {
+          setError(typeof event.message === "string" ? event.message : "The benchmark stopped before producing evidence.");
+          setLanes({});
+          setRunning(false);
+        }
+      });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not start the local benchmark.");
+      setLanes({});
+      setRunning(false);
+    }
+  };
+
+  const download = () => {
+    if (!report) return;
+    const href = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = `pocketproof-report-${report.id}.json`;
+    link.click();
+    URL.revokeObjectURL(href);
+  };
+
+  return (
+    <>
+      <a className="skip-link" href="#main-content">Skip to content</a>
+      <header className="topbar">
+        <a className="wordmark" href="#top" aria-label="Pocket Proof home"><span>P</span> Pocket Proof</a>
+        <nav className="topbar-actions" aria-label="Judge Mode actions">
+          <span className="mode">Judge Mode</span>
+          <button type="button" className="text-button" disabled={!report} onClick={download}>Export evidence</button>
+        </nav>
+      </header>
+      <main id="main-content" tabIndex={-1}>
+        <div id="top" className="shell">
+          <ProofStrip system={system} report={report} />
+          <section className="hero">
+            <div>
+              <p className="eyebrow">Local AI optimization laboratory</p>
+              <h1>
+                <span>See exactly what</span>
+                {" "}
+                <span>optimization does to local AI.</span>
+              </h1>
+              <p className="lede">A controlled transcription benchmark for Arm powered client hardware. Same input. Explicit profiles. Exportable evidence.</p>
+            </div>
+            <div className="hero-meta" aria-label="Featured workload">
+              <span>{system?.chip ?? report?.system?.chip ?? "Hardware inspection pending"}</span>
+              <span>{report?.input?.durationMs ? `${formatMs(report.input.durationMs)} sample` : "Sample defined by report"}</span>
+            </div>
+          </section>
+          <section className="race" aria-labelledby="race-title" aria-busy={running}>
+            <div className="race-head">
+              <div>
+                <p className="eyebrow">Optimization drag race</p>
+                <h2 id="race-title" aria-live="polite">{running ? "Benchmark process in progress" : report ? "Measured configuration comparison" : "Ready when evidence is available"}</h2>
+              </div>
+              <div className="race-actions">
+                {report?.source === "recorded" && <span className="recorded">Recorded evidence</span>}
+                <button type="button" className="button" onClick={() => void run()} disabled={running}>{running ? "Benchmark running…" : "Run full benchmark"}</button>
+              </div>
+            </div>
+            {loading ? <LoadingEvidence /> : comparison ? (
+              <>
+                <div className="lane-grid">
+                  <Lane profile={comparison.reference} info={lanes[comparison.reference.id]} result={comparison.base} mode="reference" />
+                  <div className="versus" aria-hidden="true">VS</div>
+                  <Lane profile={comparison.optimized} info={lanes[comparison.optimized.id]} result={comparison.better} mode="optimized" />
+                </div>
+                <p className="race-note" aria-live="polite">{running
+                  ? "Twelve local CPU processes run sequentially. Expect roughly 30 seconds on the featured M5; duration varies by device. The reviewed result remains visible until the new report is complete."
+                  : origin === "fallback" || report?.source === "recorded"
+                    ? "Recorded run. Replayed evidence, not live process telemetry. Full validation launches 12 sequential local CPU processes."
+                    : "Measured independently. This comparison comes from the stored benchmark report. Full validation launches 12 sequential local CPU processes."}</p>
+              </>
+            ) : <NoEvidence error={error} onRetry={() => void refresh()} />}
+          </section>
+          {report && (
+            <section ref={resultRef} tabIndex={-1} className="results" aria-label="Benchmark results">
+              <ResultReveal report={report} />
+              <TranscriptEvidence report={report} />
+              <ProfileSummary report={report} />
+              <EvidenceDrawer report={report} />
+              <TaglineReveal />
+            </section>
+          )}
+          {error && report && <p className="error-banner" role="alert">{error}</p>}
+        </div>
+      </main>
+      <footer>
+        <span className="footer-mark">Pocket Proof · local benchmark evidence, not cloud telemetry.</span>
+        <nav aria-label="Project links">
+          <a href="https://github.com/andrewkernel/pocket-proof" target="_blank" rel="noreferrer">Source</a>
+          <a href="https://github.com/andrewkernel/pocket-proof/blob/main/docs/reproducibility.md" target="_blank" rel="noreferrer">Reproduce</a>
+          <a href="https://github.com/andrewkernel/pocket-proof/blob/main/docs/privacy.md" target="_blank" rel="noreferrer">Privacy</a>
+          <a href="https://github.com/andrewkernel/pocket-proof/blob/main/docs/terms.md" target="_blank" rel="noreferrer">Terms</a>
+        </nav>
+      </footer>
+    </>
+  );
+}
