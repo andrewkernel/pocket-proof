@@ -2,7 +2,7 @@
 
 setup:
 	npm ci
-	./scripts/setup-runtime.sh
+	bash scripts/setup-runtime.sh
 
 dev:
 	npm run dev

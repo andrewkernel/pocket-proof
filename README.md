@@ -47,12 +47,12 @@ Prerequisites: native Arm64 macOS, Node.js 22+, CMake 3.27+, Python 3.9+, and su
 
 ```sh
 npm ci
-./scripts/setup-runtime.sh
+bash scripts/setup-runtime.sh
 npm run benchmark -- --runs 5 --warmup 1 --threads 4
 npm run dev
 ```
 
-The setup script pins Arm STT-Runner, downloads `ggml-small.en.bin`, builds native Arm64 reference and KleidiAI ablation binaries, and derives the Q4_0 artifact. If CMake is installed outside `PATH`, pass its absolute executable path as `CMAKE_BIN=/path/to/cmake ./scripts/setup-runtime.sh`. Open the local address printed by Vite. `npm run benchmark` creates a new immutable, schema-validated JSON report; Judge Mode labels any visual race as a recorded replay. See [reproducibility.md](docs/reproducibility.md) and [methodology.md](docs/methodology.md).
+The setup script pins Arm STT-Runner, downloads `ggml-small.en.bin`, builds native Arm64 reference and KleidiAI ablation binaries, and derives the Q4_0 artifact. If CMake is installed outside `PATH`, pass its absolute executable path as `CMAKE_BIN=/path/to/cmake bash scripts/setup-runtime.sh`. Open the local address printed by Vite. `npm run benchmark` creates a new immutable, schema-validated JSON report; Judge Mode labels any visual race as a recorded replay. See [reproducibility.md](docs/reproducibility.md) and [methodology.md](docs/methodology.md).
 
 ## What is local
 
