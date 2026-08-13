@@ -16,12 +16,12 @@ file path/to/binary
 
 ```sh
 npm ci
-./scripts/setup-runtime.sh
+bash scripts/setup-runtime.sh
 npm run benchmark -- --runs 5 --warmup 1 --threads 4
 npm run verify
 ```
 
-The setup process pins STT-Runner revision `bdabdb945f373651442a3693c0cd55d9af690e32`, downloads the FP16 small.en artifact, derives/verifies the Q4_0 artifact, and produces native Arm64 binaries. If CMake is installed outside `PATH`, invoke setup as `CMAKE_BIN=/absolute/path/to/cmake ./scripts/setup-runtime.sh`. The primary benchmark uses the `USE_KLEIDIAI=OFF` CPU binary for both lanes, with four threads and matching audio/options. Do not edit or overwrite a completed result; create a new report.
+The setup process pins STT-Runner revision `bdabdb945f373651442a3693c0cd55d9af690e32`, downloads the FP16 small.en artifact, derives/verifies the Q4_0 artifact, and produces native Arm64 binaries. If CMake is installed outside `PATH`, invoke setup as `CMAKE_BIN=/absolute/path/to/cmake bash scripts/setup-runtime.sh`. The primary benchmark uses the `USE_KLEIDIAI=OFF` CPU binary for both lanes, with four threads and matching audio/options. Do not edit or overwrite a completed result; create a new report.
 
 ## Minimum artifact contents
 
