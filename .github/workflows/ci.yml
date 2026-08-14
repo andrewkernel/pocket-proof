@@ -22,5 +22,6 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm run verify:report
+      - run: npm run media:verify
       - run: bash -n scripts/setup-runtime.sh
       - run: npm run secret-scan
