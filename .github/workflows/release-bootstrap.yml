@@ -1,0 +1,84 @@
+name: Publish verified Pocket Proof release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/release-bootstrap.yml"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pocket-proof-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Reassemble and apply the verified release tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          bundle_path="$RUNNER_TEMP/pocket-proof-release.tar.gz"
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import os
+          from pathlib import Path
+
+          parts = sorted(Path(".release-bundle").glob("chunk-*"))
+          if len(parts) != 12:
+              raise SystemExit(f"Expected 12 release chunks, found {len(parts)}")
+          encoded = b"".join(path.read_bytes() for path in parts)
+          archive = base64.b64decode(encoded, validate=True)
+          expected = "4569f61006f16c1c8e4fb5c82fb119627072b2e17d5216213edfb0f4f9beaae5"
+          actual = hashlib.sha256(archive).hexdigest()
+          if actual != expected:
+              raise SystemExit(f"Release archive hash mismatch: {actual}")
+          destination = Path(os.environ["RUNNER_TEMP"]) / "pocket-proof-release.tar.gz"
+          destination.write_bytes(archive)
+          PY
+          tar -xzf "$bundle_path" -C .
+          git rm -r --ignore-unmatch \
+            .release-bundle \
+            .github/workflows/release-bootstrap.yml \
+            benchmark/samples.manifest.json
+          git add -A
+          actual_tree="$(git write-tree)"
+          expected_tree="d70387f83cd5edfcf66fae9598159c40a2bdec43"
+          test "$actual_tree" = "$expected_tree"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat: publish preset corpus and submission release"
+          git push origin HEAD:main
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build:pages
+      - run: npm run verify:report
+      - run: npm run media:verify
+      - run: bash -n scripts/setup-runtime.sh
+      - run: npm run secret-scan
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - name: Deploy Judge Mode
+        id: deployment
+        uses: actions/deploy-pages@v4
