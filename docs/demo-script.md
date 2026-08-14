@@ -1,29 +1,23 @@
-# Demo script (< 3 minutes)
+# Demo script (83 seconds)
 
 The challenge permits an optional public video shorter than three minutes and says judges need not watch after that point. [Rules](https://arm-ai-optimization-challenge.devpost.com/rules)
 
-## 0:00–0:15 — establish the problem
+The finished captioned artifact is `assets/demo/pocket-proof-demo.mp4`; its narration source is [demo-narration.md](demo-narration.md), and its checksums are in `assets/demo/demo-manifest.json`.
 
-“This is Pocket Proof: an evidence-first way to see what optimization does to local speech-to-text on an Arm-powered laptop. No audio leaves this device during inference.” Show `arm64`, the actual chip/OS, input duration, and Q4_0 model identifier.
+## 0:00–0:18 — establish the product and presets
 
-## 0:15–0:40 — establish fairness
+Show native `arm64`, Apple M5, and the SQLite-backed public-domain preset library. Explain that every MP4 preview maps to a checksum-pinned WAV, transcript, source, and license.
+
+## 0:18–0:38 — establish fairness
 
 Show the control contract: same Whisper small.en task, 11-second audio, four threads, native Arm64 CPU binary, and `USE_KLEIDIAI=OFF`. Point to the only intended difference: FP16 versus Q4_0 model representation. State that the visual race is a replay of sequential measurements, not two competing processes.
 
-## 0:40–1:20 — run or replay evidence
+## 0:38–1:00 — reveal single-clip and corpus evidence
 
-Trigger a real benchmark if it completes reliably; otherwise choose a UI control labelled “Replay recorded benchmark.” Show the report ID, number of measured runs, warm-ups, and lane order. Do not narrate a metric that is not visible in the artifact.
+Show the featured 1.59× result, then the three-clip result: 30 measured processes, 1.55× median paired speedup, 1.49–1.62× bootstrap interval, and 6.9%→8.3% corpus WER.
 
-## 1:20–1:55 — reveal results
+## 1:00–1:23 — disclose the cost and close
 
-Reveal the actual median outcomes: 2577.86 ms to 1616.44 ms (1.5948×, 37.30% lower latency), 791,117,824 B to 445,251,584 B median peak RSS (43.72% less), and 487,614,201 B to 145,471,353 B model bytes (70.17% smaller). Show the exact transcript match and normalized WER 0 on the JFK clip. Say “on this configuration” rather than extrapolating.
-
-## 1:55–2:30 — make it reusable
-
-Open the Reproduce panel: command, model hashes, binary metadata, Arm notes, the separate neutral KleidiAI ablation, and exportable JSON. Briefly show `file` output or equivalent native-binary evidence.
-
-## 2:30–2:50 — close
-
-“Pocket Proof makes Arm optimization inspectable: a controlled intervention, real local inference, and a result another developer can reproduce.”
+Say that the noisy Apollo clip adds one Q4 word error. State that the same-model KleidiAI ablation did not improve this M5 configuration and is preserved as negative evidence. Close on immutable history and exportable reports.
 
 Avoid third-party music, unlicensed assets, or marks that imply sponsorship/endorsement. [Challenge rules](https://arm-ai-optimization-challenge.devpost.com/rules)

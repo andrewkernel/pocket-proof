@@ -50,6 +50,12 @@ export function selectLatestLiveReport(reports) {
 }
 
 export async function featuredReport() {
+  try {
+    const report = JSON.parse(await readFile(path.resolve("public/featured-report.json"), "utf8"));
+    if (report.status === "complete" && report.source === "recorded") return report;
+  } catch {
+    // Fall back to stored reports only when the explicitly promoted artifact is unavailable.
+  }
   return selectFeaturedReport(await listReports());
 }
 

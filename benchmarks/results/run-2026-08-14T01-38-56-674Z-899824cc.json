@@ -1,0 +1,669 @@
+{
+  "schemaVersion": 1,
+  "id": "run-2026-08-14T01-38-56-674Z-899824cc",
+  "createdAt": "2026-08-14T01:38:56.674Z",
+  "status": "complete",
+  "source": "recorded",
+  "strategy": "sequential-interleaved",
+  "executionStrategy": "sequential-interleaved",
+  "system": {
+    "architecture": "arm64",
+    "os": "macOS",
+    "osVersion": "26.5.2",
+    "kernelRelease": "25.5.0",
+    "model": "MacBook Pro",
+    "modelIdentifier": "Mac17,2",
+    "chip": "Apple M5",
+    "cores": "10 (4 Super and 6 Efficiency)",
+    "memoryBytes": 17179869184,
+    "translated": false,
+    "collectedAt": "2026-08-14T01:38:34.331Z"
+  },
+  "input": {
+    "id": "jfk",
+    "title": "Ask Not",
+    "path": "samples/jfk.wav",
+    "videoPath": "/media/jfk.mp4",
+    "sha256": "59dfb9a4acb36fe2a2affc14bacbee2920ff435cb13cc314a08c13f66ba7860e",
+    "durationMs": 11000,
+    "referenceTranscript": "And so, my fellow Americans, ask not what your country can do for you—ask what you can do for your country.",
+    "difficulty": "clean",
+    "license": "Public domain"
+  },
+  "methodology": {
+    "measuredRuns": 5,
+    "warmupRuns": 1,
+    "threads": 4,
+    "order": "alternating AB/BA",
+    "clock": "whisper.cpp monotonic internal timing plus macOS /usr/bin/time",
+    "commandSemantics": {
+      "language": "English-only small.en model; whisper.cpp default language detection",
+      "gpu": "disabled at build with GGML_METAL=OFF; CPU backend only",
+      "decoder": "whisper.cpp defaults (beam size 5, best-of 5)",
+      "note": "Per-run command arrays are the exact process arguments used by this harness."
+    }
+  },
+  "profiles": [
+    {
+      "id": "reference",
+      "label": "FP16 Reference",
+      "precision": "F16",
+      "threads": 4,
+      "backend": "whisper.cpp CPU",
+      "model": {
+        "id": "Whisper small.en",
+        "bytes": 487614201,
+        "sha256": "c6138d6d58ecc8322097e0f987c32f1be8bb0a18532a3f88f734d1bbf9c41e5d",
+        "precision": "F16",
+        "format": "ggml"
+      },
+      "runtime": {
+        "path": "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "file": "vendor/stt-runner/build-reference/bin/whisper-cli: Mach-O 64-bit executable arm64",
+        "lipo": "Non-fat file: vendor/stt-runner/build-reference/bin/whisper-cli is architecture: arm64",
+        "sha256": "49b810861aba0e1c479f830ec4cf0c8c1388fcffc30e595efc659969f28341f7"
+      },
+      "interventions": [
+        "Native arm64",
+        "CPU",
+        "FP16 model representation"
+      ]
+    },
+    {
+      "id": "optimized",
+      "label": "Q4 Optimized",
+      "precision": "Q4_0",
+      "threads": 4,
+      "backend": "whisper.cpp CPU",
+      "model": {
+        "id": "Whisper small.en",
+        "bytes": 145471353,
+        "sha256": "37eb5db9875dae4fdf9b2727459ccbf2ee8ba9ef5590655bb13a7b573aae241b",
+        "precision": "Q4_0",
+        "format": "ggml"
+      },
+      "runtime": {
+        "path": "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "file": "vendor/stt-runner/build-reference/bin/whisper-cli: Mach-O 64-bit executable arm64",
+        "lipo": "Non-fat file: vendor/stt-runner/build-reference/bin/whisper-cli is architecture: arm64",
+        "sha256": "49b810861aba0e1c479f830ec4cf0c8c1388fcffc30e595efc659969f28341f7"
+      },
+      "interventions": [
+        "Native arm64",
+        "CPU",
+        "Q4_0 weight quantization"
+      ]
+    }
+  ],
+  "measurements": [
+    {
+      "profileId": "reference",
+      "phase": "warmup",
+      "sequence": 1,
+      "startedAt": "2026-08-14T01:38:34.765Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2287.79,
+        "totalMs": 2300,
+        "modelLoadMs": 180.52,
+        "encodeMs": 1764.62,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 783843328,
+        "peakFootprintBytes": 787465272
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "warmup",
+      "sequence": 2,
+      "startedAt": "2026-08-14T01:38:37.073Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1560.64,
+        "totalMs": 1570,
+        "modelLoadMs": 48.22,
+        "encodeMs": 1296.11,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 445956096,
+        "peakFootprintBytes": 440795976
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 3,
+      "startedAt": "2026-08-14T01:38:38.645Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2131.63,
+        "totalMs": 2140,
+        "modelLoadMs": 106.04,
+        "encodeMs": 1736.43,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 790265856,
+        "peakFootprintBytes": 785302560
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 4,
+      "startedAt": "2026-08-14T01:38:40.792Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1350.42,
+        "totalMs": 1360,
+        "modelLoadMs": 50,
+        "encodeMs": 1085.19,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 445890560,
+        "peakFootprintBytes": 440730440
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 5,
+      "startedAt": "2026-08-14T01:38:42.154Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1364.96,
+        "totalMs": 1370,
+        "modelLoadMs": 52.38,
+        "encodeMs": 1087.66,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 445579264,
+        "peakFootprintBytes": 440419144
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 6,
+      "startedAt": "2026-08-14T01:38:43.531Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2219,
+        "totalMs": 2230,
+        "modelLoadMs": 104.95,
+        "encodeMs": 1803.5,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 793706496,
+        "peakFootprintBytes": 788776016
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 7,
+      "startedAt": "2026-08-14T01:38:45.767Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2164.77,
+        "totalMs": 2170,
+        "modelLoadMs": 107.06,
+        "encodeMs": 1766.93,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 792100864,
+        "peakFootprintBytes": 787137568
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 8,
+      "startedAt": "2026-08-14T01:38:47.946Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1401.68,
+        "totalMs": 1410,
+        "modelLoadMs": 49.34,
+        "encodeMs": 1135.55,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 446808064,
+        "peakFootprintBytes": 441664352
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 9,
+      "startedAt": "2026-08-14T01:38:49.359Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1397.94,
+        "totalMs": 1400,
+        "modelLoadMs": 50.46,
+        "encodeMs": 1134.13,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 445038592,
+        "peakFootprintBytes": 439862064
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 10,
+      "startedAt": "2026-08-14T01:38:50.769Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2203.18,
+        "totalMs": 2210,
+        "modelLoadMs": 105.75,
+        "encodeMs": 1805.98,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 791494656,
+        "peakFootprintBytes": 786547768
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 11,
+      "startedAt": "2026-08-14T01:38:52.987Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2227.99,
+        "totalMs": 2240,
+        "modelLoadMs": 107.74,
+        "encodeMs": 1825.05,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 793460736,
+        "peakFootprintBytes": 788513848
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 12,
+      "startedAt": "2026-08-14T01:38:55.230Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/jfk.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1431.82,
+        "totalMs": 1440,
+        "modelLoadMs": 49.74,
+        "encodeMs": 1164.27,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 444825600,
+        "peakFootprintBytes": 439681888
+      },
+      "transcript": {
+        "text": "And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "reference": {
+      "inferenceMs": 2203.18,
+      "totalMs": 2210,
+      "peakRssBytes": 792100864,
+      "modelBytes": 487614201,
+      "wer": 0,
+      "runs": 5,
+      "statistics": {
+        "inferenceMs": {
+          "count": 5,
+          "median": 2203.18,
+          "min": 2131.63,
+          "max": 2227.99,
+          "mean": 2189.314,
+          "stddev": 40.30883687232853
+        },
+        "totalMs": {
+          "count": 5,
+          "median": 2210,
+          "min": 2140,
+          "max": 2240,
+          "mean": 2198,
+          "stddev": 42.07136793592526
+        },
+        "modelLoadMs": {
+          "count": 5,
+          "median": 106.04,
+          "min": 104.95,
+          "max": 107.74,
+          "mean": 106.30799999999999,
+          "stddev": 1.100395383487224
+        },
+        "encodeMs": {
+          "count": 5,
+          "median": 1803.5,
+          "min": 1736.43,
+          "max": 1825.05,
+          "mean": 1787.578,
+          "stddev": 35.49208461051558
+        },
+        "peakRssBytes": {
+          "count": 5,
+          "median": 792100864,
+          "min": 790265856,
+          "max": 793706496,
+          "mean": 792205721.6,
+          "stddev": 1423646.101893585
+        },
+        "wer": {
+          "count": 5,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "stddev": 0
+        }
+      }
+    },
+    "optimized": {
+      "inferenceMs": 1397.94,
+      "totalMs": 1400,
+      "peakRssBytes": 445579264,
+      "modelBytes": 145471353,
+      "wer": 0,
+      "runs": 5,
+      "statistics": {
+        "inferenceMs": {
+          "count": 5,
+          "median": 1397.94,
+          "min": 1350.42,
+          "max": 1431.82,
+          "mean": 1389.364,
+          "stddev": 32.17115913360906
+        },
+        "totalMs": {
+          "count": 5,
+          "median": 1400,
+          "min": 1360,
+          "max": 1440,
+          "mean": 1396,
+          "stddev": 32.09361307176243
+        },
+        "modelLoadMs": {
+          "count": 5,
+          "median": 50,
+          "min": 49.34,
+          "max": 52.38,
+          "mean": 50.384,
+          "stddev": 1.187636307966374
+        },
+        "encodeMs": {
+          "count": 5,
+          "median": 1134.13,
+          "min": 1085.19,
+          "max": 1164.27,
+          "mean": 1121.3600000000001,
+          "stddev": 34.09419305394978
+        },
+        "peakRssBytes": {
+          "count": 5,
+          "median": 445579264,
+          "min": 444825600,
+          "max": 446808064,
+          "mean": 445628416,
+          "stddev": 783439.6403961189
+        },
+        "wer": {
+          "count": 5,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "stddev": 0
+        }
+      }
+    }
+  },
+  "comparison": {
+    "speedup": 1.5760189993848088,
+    "latencyReductionPct": 36.54898828057625,
+    "memoryReductionPct": 43.747155917759486,
+    "modelReductionPct": 70.16671116188431,
+    "sampleQualityRetentionPct": 100,
+    "transcriptExactMatch": true
+  },
+  "findings": {
+    "selectedIntervention": "FP16 to Q4_0 model quantization",
+    "rejectedIntervention": "Same-Q4_0 KleidiAI builds were tested independently; no repeatable improvement was observed on this Apple M5 configuration."
+  },
+  "provenance": {
+    "appVersion": "0.1.0",
+    "gitCommit": "5fc370366625781edd91bcc6177a5d4228dc7b53",
+    "sttRunnerRevision": "bdabdb945f373651442a3693c0cd55d9af690e32",
+    "modelRepositoryRevision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+    "configHash": "281fbeaf56e5dcd019772a3467af3db1414b827ad842f93f5a0ecc05bde618e7"
+  }
+}

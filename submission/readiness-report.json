@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-14T02:04:43.276Z",
+  "score": 100,
+  "maximumScore": 100,
+  "status": "ready",
+  "note": "This is a deterministic submission-readiness gate aligned to the published judging weights, not a guarantee of a judge's subjective score.",
+  "categories": {
+    "Technological Implementation": {
+      "earned": 40,
+      "possible": 40
+    },
+    "User / Developer Experience": {
+      "earned": 15,
+      "possible": 15
+    },
+    "Potential Impact": {
+      "earned": 20,
+      "possible": 20
+    },
+    "WOW factor": {
+      "earned": 25,
+      "possible": 25
+    }
+  },
+  "checks": [
+    {
+      "category": "Technological Implementation",
+      "name": "Automated test suite",
+      "points": 8,
+      "earned": 8,
+      "status": "pass",
+      "proof": "npm test"
+    },
+    {
+      "category": "Technological Implementation",
+      "name": "Strict featured-report integrity",
+      "points": 8,
+      "earned": 8,
+      "status": "pass",
+      "proof": "npm run verify:report"
+    },
+    {
+      "category": "Technological Implementation",
+      "name": "SQLite media database and file checksums",
+      "points": 8,
+      "earned": 8,
+      "status": "pass",
+      "proof": "npm run media:verify"
+    },
+    {
+      "category": "Technological Implementation",
+      "name": "Three-clip raw-run-backed corpus",
+      "points": 8,
+      "earned": 8,
+      "status": "pass",
+      "proof": "benchmarks/corpus-summary.json and immutable reports"
+    },
+    {
+      "category": "Technological Implementation",
+      "name": "Native Arm64 provenance and honest ablation",
+      "points": 8,
+      "earned": 8,
+      "status": "pass",
+      "proof": "featured report plus KleidiAI ablation"
+    },
+    {
+      "category": "User / Developer Experience",
+      "name": "Type-safe production and hosted builds",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "npm run typecheck and npm run build:pages"
+    },
+    {
+      "category": "User / Developer Experience",
+      "name": "Preset selection, streaming progress, and history UI",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "App, API, and SSE implementation"
+    },
+    {
+      "category": "User / Developer Experience",
+      "name": "One-command setup and reproducibility docs",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "README, Makefile, and docs/reproducibility.md"
+    },
+    {
+      "category": "Potential Impact",
+      "name": "Open-source and third-party licensing",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "MIT, dependency licenses, and media provenance"
+    },
+    {
+      "category": "Potential Impact",
+      "name": "Reusable preset corpus artifacts",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "SQLite, public catalog, preview media, and raw reports"
+    },
+    {
+      "category": "Potential Impact",
+      "name": "Immutable history and explicit promotion",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "exclusive report writes and --promote gate"
+    },
+    {
+      "category": "Potential Impact",
+      "name": "Public repository and hosted Judge Mode automation",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "Git remote and GitHub Pages workflow"
+    },
+    {
+      "category": "WOW factor",
+      "name": "Under-three-minute captioned demo",
+      "points": 10,
+      "earned": 10,
+      "status": "pass",
+      "proof": "assets/demo/demo-manifest.json"
+    },
+    {
+      "category": "WOW factor",
+      "name": "Submission-grade screenshots and social preview",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "assets/screenshots, assets/demo, and social preview"
+    },
+    {
+      "category": "WOW factor",
+      "name": "Evidence-first corpus visualization",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "multi-clip UI and measured report"
+    },
+    {
+      "category": "WOW factor",
+      "name": "Complete submission copy without placeholders",
+      "points": 5,
+      "earned": 5,
+      "status": "pass",
+      "proof": "Devpost draft, checklist, demo script, and secret scan"
+    }
+  ]
+}

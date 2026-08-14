@@ -1,4 +1,4 @@
-import type { Aggregate, Measurement, Profile, RaceEvent, Report, SystemInfo, UnknownRecord } from "./types";
+import type { Aggregate, CorpusSummary, Measurement, MediaClip, Profile, RaceEvent, Report, SystemInfo, UnknownRecord } from "./types";
 
 const isRecord = (value: unknown): value is UnknownRecord => typeof value === "object" && value !== null;
 const text = (value: unknown) => typeof value === "string" ? value : undefined;
@@ -8,6 +8,7 @@ const bool = (value: unknown) => typeof value === "boolean" ? value : undefined;
 function profile(value: unknown, index: number): Profile {
   const item = isRecord(value) ? value : {};
   const model = isRecord(item.model) ? item.model : {};
+  const runtime = isRecord(item.runtime) ? item.runtime : {};
   return {
     id: text(item.id) ?? `profile-${index}`,
     label: text(item.label) ?? text(item.name) ?? `Profile ${index + 1}`,
@@ -15,6 +16,7 @@ function profile(value: unknown, index: number): Profile {
     threads: num(item.threads),
     backend: text(item.backend) ?? text(isRecord(item.runtime) ? item.runtime.backend : undefined),
     model: { id: text(model.id), bytes: num(model.bytes) ?? num(item.modelBytes), sha256: text(model.sha256), precision: text(model.precision) },
+    runtime: { file: text(runtime.file), lipo: text(runtime.lipo), sha256: text(runtime.sha256) },
     interventions: Array.isArray(item.interventions) ? item.interventions.filter((x): x is string => typeof x === "string") : undefined,
   };
 }
@@ -48,7 +50,33 @@ export function normalizeReport(value: unknown): Report | null {
   const system = isRecord(root.system) ? root.system : {};
   const input = isRecord(root.input) ? root.input : {};
   const comparison = isRecord(root.comparison) ? root.comparison : {};
-  return { id: text(root.id) ?? "featured", createdAt: text(root.createdAt), source: text(root.source), strategy: text(root.strategy), system: { architecture: text(system.architecture), chip: text(system.chip) ?? text(system.hardwareModel), memoryBytes: num(system.memoryBytes) ?? num(system.totalMemoryBytes), os: text(system.os) ?? text(system.osVersion), runtime: text(system.runtime), binaryArchitecture: text(system.binaryArchitecture) }, profiles, aggregates, measurements, input: { durationMs: num(input.durationMs), id: text(input.id) }, comparison: { transcriptExactMatch: bool(comparison.transcriptExactMatch) }, provenance: isRecord(root.provenance) ? { gitCommit: text(root.provenance.gitCommit), configHash: text(root.provenance.configHash), appVersion: text(root.provenance.appVersion) } : undefined };
+  const findings = isRecord(root.findings) ? root.findings : {};
+  return { id: text(root.id) ?? "featured", createdAt: text(root.createdAt), source: text(root.source), strategy: text(root.strategy), system: { architecture: text(system.architecture), chip: text(system.chip) ?? text(system.hardwareModel), memoryBytes: num(system.memoryBytes) ?? num(system.totalMemoryBytes), os: text(system.os) ?? text(system.osVersion), runtime: text(system.runtime), binaryArchitecture: text(system.binaryArchitecture) }, profiles, aggregates, measurements, input: { durationMs: num(input.durationMs), id: text(input.id), title: text(input.title), videoPath: text(input.videoPath), difficulty: text(input.difficulty), license: text(input.license) }, comparison: { transcriptExactMatch: bool(comparison.transcriptExactMatch) }, findings: { selectedIntervention: text(findings.selectedIntervention), rejectedIntervention: text(findings.rejectedIntervention) }, provenance: isRecord(root.provenance) ? { gitCommit: text(root.provenance.gitCommit), configHash: text(root.provenance.configHash), appVersion: text(root.provenance.appVersion) } : undefined };
+}
+
+function mediaClip(value: unknown): MediaClip | null {
+  if (!isRecord(value)) return null;
+  const source = isRecord(value.source) ? value.source : {};
+  const id = text(value.id);
+  const title = text(value.title);
+  const speaker = text(value.speaker);
+  const description = text(value.description);
+  const durationMs = num(value.durationMs);
+  const videoPath = text(value.videoPath);
+  const difficulty = text(value.difficulty);
+  if (!id || !title || !speaker || !description || !durationMs || !videoPath || !difficulty) return null;
+  return {
+    id, title, speaker, description, durationMs, videoPath, difficulty,
+    recordedAt: text(value.recordedAt), sampleRateHz: num(value.sampleRateHz), channels: num(value.channels),
+    audioPath: text(value.audioPath), posterPath: text(value.posterPath), referenceTranscript: text(value.referenceTranscript),
+    featured: bool(value.featured), tags: Array.isArray(value.tags) ? value.tags.filter((tag): tag is string => typeof tag === "string") : undefined,
+    source: { label: text(source.label), pageUrl: text(source.pageUrl), license: text(source.license), attribution: text(source.attribution) },
+  };
+}
+
+export function normalizeMediaCatalog(value: unknown): MediaClip[] {
+  if (!isRecord(value) || !Array.isArray(value.clips)) return [];
+  return value.clips.map(mediaClip).filter((clip): clip is MediaClip => clip !== null);
 }
 
 async function fetchJson(path: string) {
@@ -56,6 +84,8 @@ async function fetchJson(path: string) {
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
   return response.json() as Promise<unknown>;
 }
+
+export const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
 
 export async function loadEvidence(): Promise<{ report: Report | null; system: SystemInfo | undefined; origin: "api" | "fallback" | "none" }> {
   let system: SystemInfo | undefined;
@@ -65,13 +95,47 @@ export async function loadEvidence(): Promise<{ report: Report | null; system: S
     if (isRecord(value)) system = { architecture: text(value.architecture), chip: text(value.chip), memoryBytes: num(value.memoryBytes), os: [text(value.os), text(value.osVersion)].filter(Boolean).join(" ") };
   } catch { /* system proof is optional */ }
   try { const found = normalizeReport(await fetchJson("/api/reports/featured")); if (found) return { report: found, system, origin: "api" }; } catch { /* fall through */ }
-  try { const found = normalizeReport(await fetchJson("/featured-report.json")); if (found) return { report: found, system, origin: "fallback" }; } catch { return { report: null, system, origin: "none" }; }
+  try { const found = normalizeReport(await fetchJson(assetUrl("featured-report.json"))); if (found) return { report: found, system, origin: "fallback" }; } catch { return { report: null, system, origin: "none" }; }
   return { report: null, system, origin: "none" };
 }
 
-export async function startRace(onEvent: (event: RaceEvent) => void): Promise<void> {
-  const response = await fetch("/api/races", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: "{}" });
-  if (!response.ok) throw new Error(`Could not start race (${response.status})`);
+export async function loadMediaCatalog(): Promise<MediaClip[]> {
+  for (const path of ["/api/media", assetUrl("media-catalog.json")]) {
+    try {
+      const payload = await fetchJson(path);
+      const clips = normalizeMediaCatalog(payload);
+      if (clips.length) return clips;
+    } catch { /* use the static catalog when the local database service is unavailable */ }
+  }
+  return [];
+}
+
+export async function loadHistory(): Promise<Report[]> {
+  try {
+    const payload = await fetchJson("/api/reports");
+    return Array.isArray(payload) ? payload.map(normalizeReport).filter((report): report is Report => report !== null).sort((left, right) => Date.parse(right.createdAt ?? "") - Date.parse(left.createdAt ?? "")) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function loadCorpusSummary(): Promise<CorpusSummary | null> {
+  try {
+    const payload = await fetchJson(assetUrl("corpus-summary.json"));
+    if (!isRecord(payload) || !isRecord(payload.configuration) || !isRecord(payload.aggregate) || !Array.isArray(payload.perClip)) return null;
+    return payload as unknown as CorpusSummary;
+  } catch {
+    return null;
+  }
+}
+
+export async function startRace(sampleId: string, onEvent: (event: RaceEvent) => void): Promise<void> {
+  const response = await fetch("/api/races", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ sampleId }) });
+  if (!response.ok) {
+    let detail = `Could not start race (${response.status})`;
+    try { const payload = await response.json() as UnknownRecord; detail = text(payload.error) ?? detail; } catch { /* retain status fallback */ }
+    throw new Error(detail);
+  }
   const payload = await response.json() as UnknownRecord;
   if (payload.report) { onEvent({ type: "race.complete", report: payload.report }); return; }
   const url = text(payload.eventsUrl) ?? (text(payload.id) ? `/api/races/${payload.id}/events` : undefined);

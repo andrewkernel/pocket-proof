@@ -10,6 +10,7 @@ import { resolveRuntime } from "../server/lib/runtime.js";
 import { assertValidReport } from "../server/lib/report-schema.js";
 import { saveReport } from "../server/lib/store.js";
 import { getSystemSnapshot } from "../server/lib/system.js";
+import { getMediaClip } from "../server/lib/media.js";
 
 const execFileAsync = promisify(execFile);
 const args = process.argv.slice(2);
@@ -22,10 +23,13 @@ const runs = Math.max(1, Number(getArg("--runs", "5")));
 const warmup = Math.max(0, Number(getArg("--warmup", "1")));
 const threads = Math.max(1, Number(getArg("--threads", "4")));
 const source = getArg("--source", "recorded");
+const sampleId = getArg("--sample", "jfk");
+const promote = args.includes("--promote");
 if (!["recorded", "live"].includes(source)) {
   throw new Error(`--source must be recorded or live; received ${JSON.stringify(source)}`);
 }
-const referenceTranscript = "And so my fellow Americans ask not what your country can do for you. Ask what you can do for your country.";
+if (source === "live" && promote) throw new Error("--promote is only valid for recorded benchmark reports.");
+const emitEvent = (event) => console.log(`POCKETPROOF_EVENT ${JSON.stringify(event)}`);
 const sha256File = async (file) => createHash("sha256").update(await readFile(file)).digest("hex");
 const execOptions = { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 };
 const currentGitCommit = async () => {
@@ -69,7 +73,7 @@ async function runProfile(profile, phase, sequence) {
   const startedAt = new Date().toISOString();
   const { stdout, stderr } = await execFileAsync("/usr/bin/time", command, execOptions);
   const parsed = parseWhisperCli(`${stdout}\n${stderr}`, stdout);
-  return {
+  const measurement = {
     profileId: profile.id,
     phase,
     sequence,
@@ -87,8 +91,17 @@ async function runProfile(profile, phase, sequence) {
       peakFootprintBytes: parsed.metrics.peakFootprintBytes,
     },
     transcript: { text: parsed.transcript },
-    quality: { wer: wordErrorRate(referenceTranscript, parsed.transcript), normalizedWer: wordErrorRate(referenceTranscript, parsed.transcript) },
+    quality: { wer: wordErrorRate(clip.referenceTranscript, parsed.transcript), normalizedWer: wordErrorRate(clip.referenceTranscript, parsed.transcript) },
   };
+  emitEvent({
+    type: "lane.metric",
+    profileId: profile.id,
+    phase,
+    sequence,
+    elapsedMs: measurement.timing.inferenceMs,
+    rssBytes: measurement.memory.peakRssBytes,
+  });
+  return measurement;
 }
 
 function summarize(profile, measurements, modelMeta) {
@@ -112,7 +125,9 @@ function summarize(profile, measurements, modelMeta) {
   };
 }
 
-const runtime = await resolveRuntime();
+const clip = await getMediaClip(sampleId);
+if (!clip) throw new Error(`Unknown preset clip ${JSON.stringify(sampleId)}. Run npm run media:verify to inspect the catalog.`);
+const runtime = await resolveRuntime({ samplePath: clip.audioPath });
 if (!runtime.ready) {
   console.error("Pocket Proof benchmark is not ready. Run bash scripts/setup-runtime.sh first.");
   console.error(JSON.stringify(runtime.checks, null, 2));
@@ -148,7 +163,8 @@ for (const profile of profiles) {
   profile.runtime = await inspectBinary(profile.cli);
 }
 
-console.log(`Pocket Proof real-audio benchmark — ${runs} measured run(s), ${warmup} warm-up(s), ${threads} threads`);
+console.log(`Pocket Proof real-audio benchmark — ${clip.title} — ${runs} measured run(s), ${warmup} warm-up(s), ${threads} threads`);
+emitEvent({ type: "race.started", sampleId: clip.id, sampleTitle: clip.title, runs, warmup, threads });
 const measurements = [];
 let sequence = 0;
 for (let index = 0; index < warmup; index += 1) {
@@ -156,6 +172,7 @@ for (let index = 0; index < warmup; index += 1) {
   for (const profile of order) {
     sequence += 1;
     console.log(`Warm-up ${index + 1}/${warmup}: ${profile.label}`);
+    emitEvent({ type: "lane.status", profileId: profile.id, status: "warming", phase: "warmup", run: index + 1, total: warmup });
     measurements.push(await runProfile(profile, "warmup", sequence));
   }
 }
@@ -164,6 +181,7 @@ for (let index = 0; index < runs; index += 1) {
   for (const profile of order) {
     sequence += 1;
     console.log(`Measured ${index + 1}/${runs}: ${profile.label}`);
+    emitEvent({ type: "lane.status", profileId: profile.id, status: "running", phase: "measured", run: index + 1, total: runs });
     measurements.push(await runProfile(profile, "measured", sequence));
   }
 }
@@ -181,13 +199,18 @@ const reportProfiles = profiles.map((profile) => ({
 const aggregates = Object.fromEntries(profiles.map((profile) => [profile.id, summarize(profile, measurements, { bytes: profile.modelBytes })]));
 const reference = aggregates.reference;
 const optimized = aggregates.optimized;
+const measuredTranscripts = (profileId) => measurements.filter((measurement) => measurement.profileId === profileId && measurement.phase === "measured").map((measurement) => measurement.transcript.text);
+const referenceTranscripts = measuredTranscripts("reference");
+const optimizedTranscripts = measuredTranscripts("optimized");
+const referenceAccuracy = Math.max(0, 1 - reference.wer);
+const optimizedAccuracy = Math.max(0, 1 - optimized.wer);
 const comparison = {
   speedup: reference.inferenceMs > 0 && optimized.inferenceMs > 0 ? reference.inferenceMs / optimized.inferenceMs : null,
   latencyReductionPct: reference.inferenceMs > 0 ? ((reference.inferenceMs - optimized.inferenceMs) / reference.inferenceMs) * 100 : null,
   memoryReductionPct: reference.peakRssBytes > 0 ? ((reference.peakRssBytes - optimized.peakRssBytes) / reference.peakRssBytes) * 100 : null,
   modelReductionPct: reference.modelBytes > 0 ? ((reference.modelBytes - optimized.modelBytes) / reference.modelBytes) * 100 : null,
-  sampleQualityRetentionPct: reference.wer === 0 && optimized.wer === 0 ? 100 : Math.max(0, (1 - (optimized.wer - reference.wer)) * 100),
-  transcriptExactMatch: measurements.find((m) => m.profileId === "reference" && m.phase === "measured")?.transcript.text === measurements.find((m) => m.profileId === "optimized" && m.phase === "measured")?.transcript.text,
+  sampleQualityRetentionPct: referenceAccuracy > 0 ? Math.max(0, Math.min(100, (optimizedAccuracy / referenceAccuracy) * 100)) : optimizedAccuracy > 0 ? 100 : 0,
+  transcriptExactMatch: referenceTranscripts.length === optimizedTranscripts.length && referenceTranscripts.every((text, index) => text === optimizedTranscripts[index]),
 };
 const configuration = {
   executionStrategy: "sequential-interleaved",
@@ -197,6 +220,7 @@ const configuration = {
   decoder: { beamSize: 5, bestOf: 5, language: "en" },
   modelFamily: "Whisper small.en",
   sampleSha256: await sha256File(runtime.sample),
+  sampleId: clip.id,
   modelSha256: profiles.map((profile) => profile.modelSha256),
   binarySha256: profiles.map((profile) => profile.runtime.sha256),
 };
@@ -209,7 +233,17 @@ const report = {
   strategy: "sequential-interleaved",
   executionStrategy: "sequential-interleaved",
   system,
-  input: { id: "jfk", path: publicPath(runtime.sample), sha256: configuration.sampleSha256, durationMs: 11000, referenceTranscript },
+  input: {
+    id: clip.id,
+    title: clip.title,
+    path: publicPath(runtime.sample),
+    videoPath: clip.videoPath,
+    sha256: configuration.sampleSha256,
+    durationMs: clip.durationMs,
+    referenceTranscript: clip.referenceTranscript,
+    difficulty: clip.difficulty,
+    license: clip.source.license,
+  },
   methodology: {
     measuredRuns: runs,
     warmupRuns: warmup,
@@ -243,8 +277,9 @@ const report = {
 assertValidReport(report);
 const saved = await saveReport(report);
 console.log(`Saved immutable report: ${saved}`);
-if (source !== "live") {
+if (promote) {
   await copyFile(saved, "public/featured-report.json");
-  console.log("Updated reviewed Judge Mode artifact: public/featured-report.json");
+  console.log("Promoted reviewed Judge Mode artifact: public/featured-report.json");
 }
+emitEvent({ type: "report.saved", reportId: report.id, source: report.source, promoted: promote });
 console.log(JSON.stringify(report.comparison, null, 2));

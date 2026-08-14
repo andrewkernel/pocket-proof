@@ -74,10 +74,14 @@
       "required": ["id", "path", "sha256", "durationMs", "referenceTranscript"],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
         "path": { "type": "string", "pattern": "^(?!/).+" },
+        "videoPath": { "type": "string", "pattern": "^/media/.+\\.mp4$" },
         "sha256": { "$ref": "#/$defs/sha256" },
         "durationMs": { "$ref": "#/$defs/positiveInteger" },
-        "referenceTranscript": { "type": "string", "minLength": 1 }
+        "referenceTranscript": { "type": "string", "minLength": 1 },
+        "difficulty": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1 }
       }
     },
     "methodology": {

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "database": "benchmark/preset-media.sqlite",
+  "clips": [
+    {
+      "id": "jfk",
+      "title": "Ask Not",
+      "speaker": "John F. Kennedy",
+      "recordedAt": "1961-01-20",
+      "description": "Clean archival speech used for the featured, controlled benchmark.",
+      "durationMs": 11000,
+      "sampleRateHz": 16000,
+      "channels": 1,
+      "audioPath": "samples/jfk.wav",
+      "videoPath": "/media/jfk.mp4",
+      "posterPath": "/media/catalog-poster.png",
+      "referenceTranscript": "And so, my fellow Americans, ask not what your country can do for you—ask what you can do for your country.",
+      "difficulty": "clean",
+      "featured": true,
+      "tags": ["speech", "archival", "clean"],
+      "hashes": {
+        "audioSha256": "59dfb9a4acb36fe2a2affc14bacbee2920ff435cb13cc314a08c13f66ba7860e",
+        "videoSha256": "1671b948f57457a225e2ee66b6f6df9e564d2885e9bede94d2dff6c8c9995e28",
+        "sourceSha256": "59dfb9a4acb36fe2a2affc14bacbee2920ff435cb13cc314a08c13f66ba7860e"
+      },
+      "source": {
+        "label": "JFK Library JFKWHA-001 / whisper.cpp sample",
+        "pageUrl": "https://www.jfklibrary.org/asset-viewer/archives/jfkwha-001",
+        "downloadUrl": "https://raw.githubusercontent.com/ggml-org/whisper.cpp/master/samples/jfk.wav",
+        "localSourcePath": "samples/jfk.wav",
+        "license": "Public domain",
+        "attribution": "President John F. Kennedy, January 20, 1961. U.S. federal-government work."
+      }
+    },
+    {
+      "id": "armstrong-small-step",
+      "title": "One Small Step",
+      "speaker": "Neil Armstrong",
+      "recordedAt": "1969-07-21",
+      "description": "Noisy radio transmission that stress-tests speech recognition.",
+      "durationMs": 24113,
+      "sampleRateHz": 16000,
+      "channels": 1,
+      "audioPath": "samples/armstrong-small-step.wav",
+      "videoPath": "/media/armstrong-small-step.mp4",
+      "posterPath": "/media/catalog-poster.png",
+      "referenceTranscript": "And, uh, step off the LM now. That's one small step for a man, one giant leap for mankind.",
+      "difficulty": "noisy-radio",
+      "featured": false,
+      "tags": ["speech", "space", "radio", "noise"],
+      "hashes": {
+        "audioSha256": "7624ad25fbb579355516a5ea6ec36ee5baf3720360fd7d2f551b7e79233addab",
+        "videoSha256": "1d209cc4b772eb81e4d89e766bc6d5e2436cf5ffbe68ec72180b6ea720844fa7",
+        "sourceSha256": "ad48575dea687c5109bcaf1675ee39008bd6f0a3a5f3457daab986d16c9d56ba"
+      },
+      "source": {
+        "label": "NASA Apollo 11 audio via Wikimedia Commons",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Armstrong_Small_Step.ogg",
+        "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Armstrong_Small_Step.ogg",
+        "localSourcePath": "samples/sources/armstrong-small-step.ogg",
+        "license": "Public domain (NASA)",
+        "attribution": "Neil Armstrong / NASA. U.S. federal-government work."
+      }
+    },
+    {
+      "id": "roosevelt-infamy",
+      "title": "A Date Which Will Live in Infamy",
+      "speaker": "Franklin D. Roosevelt",
+      "recordedAt": "1941-12-08",
+      "description": "Archival room recording with period noise and a longer sentence.",
+      "durationMs": 26803,
+      "sampleRateHz": 16000,
+      "channels": 1,
+      "audioPath": "samples/roosevelt-infamy.wav",
+      "videoPath": "/media/roosevelt-infamy.mp4",
+      "posterPath": "/media/catalog-poster.png",
+      "referenceTranscript": "Yesterday, December 7, 1941—a date which will live in infamy—the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan.",
+      "difficulty": "archival",
+      "featured": false,
+      "tags": ["speech", "archival", "room-noise"],
+      "hashes": {
+        "audioSha256": "2c53d400dd95a455ff7fc6f258f5d0b9c22cc5d50739687a6e61311de87f35e1",
+        "videoSha256": "4e0ed5a3cbcde814ff1eafdc98d63ea40bff79f01a3639152b054e4fcaa91856",
+        "sourceSha256": "fcd8f7d5967e0977020fe281c46bcacc67e379f834b84c51ad3529d05878ceac"
+      },
+      "source": {
+        "label": "NARA audio via Wikimedia Commons",
+        "pageUrl": "https://commons.wikimedia.org/wiki/File:Roosevelt_Infamy.ogg",
+        "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Roosevelt_Infamy.ogg",
+        "localSourcePath": "samples/sources/roosevelt-infamy.ogg",
+        "license": "Public domain",
+        "attribution": "Franklin D. Roosevelt / National Archives and Records Administration."
+      }
+    }
+  ]
+}

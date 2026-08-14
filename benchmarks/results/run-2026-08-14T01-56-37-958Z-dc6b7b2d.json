@@ -1,0 +1,669 @@
+{
+  "schemaVersion": 1,
+  "id": "run-2026-08-14T01-56-37-958Z-dc6b7b2d",
+  "createdAt": "2026-08-14T01:56:37.959Z",
+  "status": "complete",
+  "source": "recorded",
+  "strategy": "sequential-interleaved",
+  "executionStrategy": "sequential-interleaved",
+  "system": {
+    "architecture": "arm64",
+    "os": "macOS",
+    "osVersion": "26.5.2",
+    "kernelRelease": "25.5.0",
+    "model": "MacBook Pro",
+    "modelIdentifier": "Mac17,2",
+    "chip": "Apple M5",
+    "cores": "10 (4 Super and 6 Efficiency)",
+    "memoryBytes": 17179869184,
+    "translated": false,
+    "collectedAt": "2026-08-14T01:56:09.434Z"
+  },
+  "input": {
+    "id": "armstrong-small-step",
+    "title": "One Small Step",
+    "path": "samples/armstrong-small-step.wav",
+    "videoPath": "/media/armstrong-small-step.mp4",
+    "sha256": "7624ad25fbb579355516a5ea6ec36ee5baf3720360fd7d2f551b7e79233addab",
+    "durationMs": 24113,
+    "referenceTranscript": "And, uh, step off the LM now. That's one small step for a man, one giant leap for mankind.",
+    "difficulty": "noisy-radio",
+    "license": "Public domain (NASA)"
+  },
+  "methodology": {
+    "measuredRuns": 5,
+    "warmupRuns": 1,
+    "threads": 4,
+    "order": "alternating AB/BA",
+    "clock": "whisper.cpp monotonic internal timing plus macOS /usr/bin/time",
+    "commandSemantics": {
+      "language": "English-only small.en model; whisper.cpp default language detection",
+      "gpu": "disabled at build with GGML_METAL=OFF; CPU backend only",
+      "decoder": "whisper.cpp defaults (beam size 5, best-of 5)",
+      "note": "Per-run command arrays are the exact process arguments used by this harness."
+    }
+  },
+  "profiles": [
+    {
+      "id": "reference",
+      "label": "FP16 Reference",
+      "precision": "F16",
+      "threads": 4,
+      "backend": "whisper.cpp CPU",
+      "model": {
+        "id": "Whisper small.en",
+        "bytes": 487614201,
+        "sha256": "c6138d6d58ecc8322097e0f987c32f1be8bb0a18532a3f88f734d1bbf9c41e5d",
+        "precision": "F16",
+        "format": "ggml"
+      },
+      "runtime": {
+        "path": "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "file": "vendor/stt-runner/build-reference/bin/whisper-cli: Mach-O 64-bit executable arm64",
+        "lipo": "Non-fat file: vendor/stt-runner/build-reference/bin/whisper-cli is architecture: arm64",
+        "sha256": "49b810861aba0e1c479f830ec4cf0c8c1388fcffc30e595efc659969f28341f7"
+      },
+      "interventions": [
+        "Native arm64",
+        "CPU",
+        "FP16 model representation"
+      ]
+    },
+    {
+      "id": "optimized",
+      "label": "Q4 Optimized",
+      "precision": "Q4_0",
+      "threads": 4,
+      "backend": "whisper.cpp CPU",
+      "model": {
+        "id": "Whisper small.en",
+        "bytes": 145471353,
+        "sha256": "37eb5db9875dae4fdf9b2727459ccbf2ee8ba9ef5590655bb13a7b573aae241b",
+        "precision": "Q4_0",
+        "format": "ggml"
+      },
+      "runtime": {
+        "path": "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "file": "vendor/stt-runner/build-reference/bin/whisper-cli: Mach-O 64-bit executable arm64",
+        "lipo": "Non-fat file: vendor/stt-runner/build-reference/bin/whisper-cli is architecture: arm64",
+        "sha256": "49b810861aba0e1c479f830ec4cf0c8c1388fcffc30e595efc659969f28341f7"
+      },
+      "interventions": [
+        "Native arm64",
+        "CPU",
+        "Q4_0 weight quantization"
+      ]
+    }
+  ],
+  "measurements": [
+    {
+      "profileId": "reference",
+      "phase": "warmup",
+      "sequence": 1,
+      "startedAt": "2026-08-14T01:56:09.738Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2634.94,
+        "totalMs": 2650,
+        "modelLoadMs": 142.21,
+        "encodeMs": 2132.57,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 794148864,
+        "peakFootprintBytes": 789201976
+      },
+      "transcript": {
+        "text": "I'm going to step off the limb now. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.2631578947368421,
+        "normalizedWer": 0.2631578947368421
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "warmup",
+      "sequence": 2,
+      "startedAt": "2026-08-14T01:56:12.397Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1718.95,
+        "totalMs": 1730,
+        "modelLoadMs": 55.74,
+        "encodeMs": 1418.16,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 448692224,
+        "peakFootprintBytes": 443548512
+      },
+      "transcript": {
+        "text": "I'm going to step off the land mount. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.3157894736842105,
+        "normalizedWer": 0.3157894736842105
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 3,
+      "startedAt": "2026-08-14T01:56:14.130Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2694.35,
+        "totalMs": 2700,
+        "modelLoadMs": 118.3,
+        "encodeMs": 2237.04,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 794558464,
+        "peakFootprintBytes": 789627984
+      },
+      "transcript": {
+        "text": "I'm going to step off the limb now. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.2631578947368421,
+        "normalizedWer": 0.2631578947368421
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 4,
+      "startedAt": "2026-08-14T01:56:16.841Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1700.94,
+        "totalMs": 1710,
+        "modelLoadMs": 53.72,
+        "encodeMs": 1408.8,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 448430080,
+        "peakFootprintBytes": 443286368
+      },
+      "transcript": {
+        "text": "I'm going to step off the land mount. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.3157894736842105,
+        "normalizedWer": 0.3157894736842105
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 5,
+      "startedAt": "2026-08-14T01:56:18.559Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1811.86,
+        "totalMs": 1820,
+        "modelLoadMs": 53.27,
+        "encodeMs": 1483.35,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 450183168,
+        "peakFootprintBytes": 445039456
+      },
+      "transcript": {
+        "text": "I'm going to step off the land mount. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.3157894736842105,
+        "normalizedWer": 0.3157894736842105
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 6,
+      "startedAt": "2026-08-14T01:56:20.389Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2741.34,
+        "totalMs": 2760,
+        "modelLoadMs": 139.26,
+        "encodeMs": 2255.76,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 794525696,
+        "peakFootprintBytes": 789578808
+      },
+      "transcript": {
+        "text": "I'm going to step off the limb now. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.2631578947368421,
+        "normalizedWer": 0.2631578947368421
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 7,
+      "startedAt": "2026-08-14T01:56:23.152Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2983.42,
+        "totalMs": 3000,
+        "modelLoadMs": 117.7,
+        "encodeMs": 2439.4,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 714358784,
+        "peakFootprintBytes": 789955640
+      },
+      "transcript": {
+        "text": "I'm going to step off the limb now. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.2631578947368421,
+        "normalizedWer": 0.2631578947368421
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 8,
+      "startedAt": "2026-08-14T01:56:26.158Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1864.08,
+        "totalMs": 1870,
+        "modelLoadMs": 58.92,
+        "encodeMs": 1546.2,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 448757760,
+        "peakFootprintBytes": 443614048
+      },
+      "transcript": {
+        "text": "I'm going to step off the land mount. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.3157894736842105,
+        "normalizedWer": 0.3157894736842105
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 9,
+      "startedAt": "2026-08-14T01:56:28.039Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2237.48,
+        "totalMs": 2250,
+        "modelLoadMs": 73.03,
+        "encodeMs": 1772.57,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 402456576,
+        "peakFootprintBytes": 443286368
+      },
+      "transcript": {
+        "text": "I'm going to step off the land mount. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.3157894736842105,
+        "normalizedWer": 0.3157894736842105
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 10,
+      "startedAt": "2026-08-14T01:56:30.292Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 3039.88,
+        "totalMs": 3050,
+        "modelLoadMs": 177.36,
+        "encodeMs": 2424.05,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 768606208,
+        "peakFootprintBytes": 790791224
+      },
+      "transcript": {
+        "text": "I'm going to step off the limb now. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.2631578947368421,
+        "normalizedWer": 0.2631578947368421
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 11,
+      "startedAt": "2026-08-14T01:56:33.354Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2723.62,
+        "totalMs": 2730,
+        "modelLoadMs": 118.76,
+        "encodeMs": 2271.55,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 793575424,
+        "peakFootprintBytes": 788595720
+      },
+      "transcript": {
+        "text": "I'm going to step off the limb now. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.2631578947368421,
+        "normalizedWer": 0.2631578947368421
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 12,
+      "startedAt": "2026-08-14T01:56:36.098Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/armstrong-small-step.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1838.84,
+        "totalMs": 1850,
+        "modelLoadMs": 56.58,
+        "encodeMs": 1525.88,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 448479232,
+        "peakFootprintBytes": 443319112
+      },
+      "transcript": {
+        "text": "I'm going to step off the land mount. That's one small step for man, one giant leap for mankind."
+      },
+      "quality": {
+        "wer": 0.3157894736842105,
+        "normalizedWer": 0.3157894736842105
+      }
+    }
+  ],
+  "aggregates": {
+    "reference": {
+      "inferenceMs": 2741.34,
+      "totalMs": 2760,
+      "peakRssBytes": 793575424,
+      "modelBytes": 487614201,
+      "wer": 0.2631578947368421,
+      "runs": 5,
+      "statistics": {
+        "inferenceMs": {
+          "count": 5,
+          "median": 2741.34,
+          "min": 2694.35,
+          "max": 3039.88,
+          "mean": 2836.522,
+          "stddev": 161.9821370398601
+        },
+        "totalMs": {
+          "count": 5,
+          "median": 2760,
+          "min": 2700,
+          "max": 3050,
+          "mean": 2848,
+          "stddev": 163.9207125411551
+        },
+        "modelLoadMs": {
+          "count": 5,
+          "median": 118.76,
+          "min": 117.7,
+          "max": 177.36,
+          "mean": 134.276,
+          "stddev": 25.74788301977466
+        },
+        "encodeMs": {
+          "count": 5,
+          "median": 2271.55,
+          "min": 2237.04,
+          "max": 2439.4,
+          "mean": 2325.56,
+          "stddev": 97.83242841716648
+        },
+        "peakRssBytes": {
+          "count": 5,
+          "median": 793575424,
+          "min": 714358784,
+          "max": 794558464,
+          "mean": 773124915.2,
+          "stddev": 34675245.6161649
+        },
+        "wer": {
+          "count": 5,
+          "median": 0.2631578947368421,
+          "min": 0.2631578947368421,
+          "max": 0.2631578947368421,
+          "mean": 0.2631578947368421,
+          "stddev": 0
+        }
+      }
+    },
+    "optimized": {
+      "inferenceMs": 1838.84,
+      "totalMs": 1850,
+      "peakRssBytes": 448479232,
+      "modelBytes": 145471353,
+      "wer": 0.3157894736842105,
+      "runs": 5,
+      "statistics": {
+        "inferenceMs": {
+          "count": 5,
+          "median": 1838.84,
+          "min": 1700.94,
+          "max": 2237.48,
+          "mean": 1890.64,
+          "stddev": 203.64125171487237
+        },
+        "totalMs": {
+          "count": 5,
+          "median": 1850,
+          "min": 1710,
+          "max": 2250,
+          "mean": 1900,
+          "stddev": 205.1828452868319
+        },
+        "modelLoadMs": {
+          "count": 5,
+          "median": 56.58,
+          "min": 53.27,
+          "max": 73.03,
+          "mean": 59.104000000000006,
+          "stddev": 8.11419928273887
+        },
+        "encodeMs": {
+          "count": 5,
+          "median": 1525.88,
+          "min": 1408.8,
+          "max": 1772.57,
+          "mean": 1547.36,
+          "stddev": 136.45368609898378
+        },
+        "peakRssBytes": {
+          "count": 5,
+          "median": 448479232,
+          "min": 402456576,
+          "max": 450183168,
+          "mean": 439661363.2,
+          "stddev": 20810419.301892098
+        },
+        "wer": {
+          "count": 5,
+          "median": 0.3157894736842105,
+          "min": 0.3157894736842105,
+          "max": 0.3157894736842105,
+          "mean": 0.3157894736842105,
+          "stddev": 0
+        }
+      }
+    }
+  },
+  "comparison": {
+    "speedup": 1.4907985469100087,
+    "latencyReductionPct": 32.92185573478664,
+    "memoryReductionPct": 43.48624989677099,
+    "modelReductionPct": 70.16671116188431,
+    "sampleQualityRetentionPct": 92.85714285714285,
+    "transcriptExactMatch": false
+  },
+  "findings": {
+    "selectedIntervention": "FP16 to Q4_0 model quantization",
+    "rejectedIntervention": "Same-Q4_0 KleidiAI builds were tested independently; no repeatable improvement was observed on this Apple M5 configuration."
+  },
+  "provenance": {
+    "appVersion": "0.1.0",
+    "gitCommit": "7809c4df8aa836e2a2b54b62aa672fbfe03b37a5",
+    "sttRunnerRevision": "bdabdb945f373651442a3693c0cd55d9af690e32",
+    "modelRepositoryRevision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+    "configHash": "3654f85ebf5f0f77fda2d996b226d2490e3b1592a6adcfdeffafb4ceca183048"
+  }
+}

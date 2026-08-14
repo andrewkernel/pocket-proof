@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "id": "corpus-2026-08-14T01-57-09-323Z",
+  "createdAt": "2026-08-14T01:57:09.323Z",
+  "device": {
+    "architecture": "arm64",
+    "os": "macOS",
+    "osVersion": "26.5.2",
+    "kernelRelease": "25.5.0",
+    "model": "MacBook Pro",
+    "modelIdentifier": "Mac17,2",
+    "chip": "Apple M5",
+    "cores": "10 (4 Super and 6 Efficiency)",
+    "memoryBytes": 17179869184,
+    "translated": false,
+    "collectedAt": "2026-08-14T01:55:42.284Z"
+  },
+  "configuration": {
+    "runsPerProfilePerClip": 5,
+    "warmupRunsPerProfilePerClip": 1,
+    "threads": 4,
+    "clipCount": 3,
+    "measuredProcessCount": 30
+  },
+  "perClip": [
+    {
+      "clipId": "jfk",
+      "title": "Ask Not",
+      "durationMs": 11000,
+      "difficulty": "clean",
+      "reportId": "run-2026-08-14T01-56-09-168Z-5513ea0f",
+      "reportPath": "benchmarks/results/run-2026-08-14T01-56-09-168Z-5513ea0f.json",
+      "reportSha256": "40e3dc4333d70b837de8f17efc7c5475918fee6448553cd369f76a51b8b91dc4",
+      "referenceMedianInferenceMs": 2543.79,
+      "optimizedMedianInferenceMs": 1633.67,
+      "speedup": 1.557101495406049,
+      "referenceWer": 0,
+      "optimizedWer": 0,
+      "transcriptExactMatch": true
+    },
+    {
+      "clipId": "armstrong-small-step",
+      "title": "One Small Step",
+      "durationMs": 24113,
+      "difficulty": "noisy-radio",
+      "reportId": "run-2026-08-14T01-56-37-958Z-dc6b7b2d",
+      "reportPath": "benchmarks/results/run-2026-08-14T01-56-37-958Z-dc6b7b2d.json",
+      "reportSha256": "2c11f66c5429919c72658f1b28cd4cfa8d43973f8500aaf67b02ccda32df78d2",
+      "referenceMedianInferenceMs": 2741.34,
+      "optimizedMedianInferenceMs": 1838.84,
+      "speedup": 1.4907985469100087,
+      "referenceWer": 0.2631578947368421,
+      "optimizedWer": 0.3157894736842105,
+      "transcriptExactMatch": false
+    },
+    {
+      "clipId": "roosevelt-infamy",
+      "title": "A Date Which Will Live in Infamy",
+      "durationMs": 26803,
+      "difficulty": "archival",
+      "reportId": "run-2026-08-14T01-57-09-288Z-0f41e478",
+      "reportPath": "benchmarks/results/run-2026-08-14T01-57-09-288Z-0f41e478.json",
+      "reportSha256": "fbdb9019ec493b34d316ee355b33aaf446043cd97e8ea9110a27c4acf7fbaafe",
+      "referenceMedianInferenceMs": 3175.82,
+      "optimizedMedianInferenceMs": 1867.64,
+      "speedup": 1.700445481998672,
+      "referenceWer": 0,
+      "optimizedWer": 0,
+      "transcriptExactMatch": true
+    }
+  ],
+  "aggregate": {
+    "referenceRealTimeFactor": {
+      "count": 15,
+      "median": 0.12290639107562587,
+      "min": 0.11173848131713184,
+      "max": 0.23424909090909088,
+      "mean": 0.15506156045865657,
+      "stddev": 0.05509401141091033
+    },
+    "optimizedRealTimeFactor": {
+      "count": 15,
+      "median": 0.0773060175009331,
+      "min": 0.06690183934634183,
+      "max": 0.16912818181818182,
+      "mean": 0.10066610889860915,
+      "stddev": 0.03827101097716949
+    },
+    "medianPairedSpeedup": 1.5518862438558583,
+    "pairedSpeedupBootstrap95": {
+      "iterations": 10000,
+      "lower95": 1.4949914780372575,
+      "upper95": 1.6162000100356264
+    },
+    "referenceCorpusWer": 0.06944444444444445,
+    "optimizedCorpusWer": 0.08333333333333333,
+    "referenceWordErrors": 5,
+    "optimizedWordErrors": 6,
+    "referenceWords": 72,
+    "exactTranscriptClipMatches": 2
+  },
+  "scope": "Three public-domain English archival clips. Results remain device, model, runtime, input, and configuration specific."
+}

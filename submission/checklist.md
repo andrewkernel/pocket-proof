@@ -23,17 +23,23 @@ These requirements come from the [official rules](https://arm-ai-optimization-ch
 - [x] Separate seven-pair same-Q4_0 KleidiAI ablation documented as neutral/slightly slower (0.98× ON/OFF mean); do not attribute headline to KleidiAI.
 - [x] Include transcript/reference and WER methodology where a reference is available.
 - [x] Verify app UI derives metrics from the same artifact.
+- [x] Add a three-clip SQLite preset database with licensed MP4 previews, WAV mappings, transcripts, and checksums.
+- [x] Run five measurements per profile across every preset and publish the 30-process corpus summary with bootstrap interval and corpus WER.
+- [x] Stream real local benchmark phase/run events and retain immutable benchmark history.
+- [x] Require explicit `--promote` before replacing the reviewed Judge Mode artifact.
 
 ## Optional video
 
-- [ ] Under three minutes; functioning target device shown.
+- [x] Under three minutes; functioning target device shown.
 - [ ] Public YouTube, Vimeo, or Youku link added to Devpost.
-- [ ] No unlicensed music/material or third-party marks without permission.
-- [ ] Clearly label any Judge Mode replay as recorded benchmark data.
+- [x] No unlicensed music/material or third-party marks without permission.
+- [x] Clearly label any Judge Mode replay as recorded benchmark data.
+- [x] English narration and burned-in captions included; manifest checksum recorded.
 
 ## Final submission
 
 - [x] Project overview, functionality/output, setup, Arm story, results, and impact completed.
 - [ ] Repository URL and optional video URL added.
 - [x] Test clean-clone setup on native Arm64 hardware.
+- [x] Deterministic local submission-readiness gate passes 100/100.
 - [ ] Submit by **Aug 14, 2026, 4:00 pm Pacific Time**.

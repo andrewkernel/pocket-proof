@@ -2,6 +2,8 @@
 
 Source: <https://github.com/andrewkernel/pocket-proof>
 
+Hosted Judge Mode: <https://andrewkernel.github.io/pocket-proof/>
+
 ## Project overview
 
 Pocket Proof is an interactive, reproducible optimization laboratory for local speech-to-text on Arm-powered client hardware. It makes one question visible: **what does a verified optimization change for a real local AI workload?**
@@ -29,9 +31,11 @@ The recorded report is [`run-2026-08-13T22-01-38-888Z-c2b8e5df`](../public/featu
 
 FP16 measured 2541.80–3353.81 ms; Q4_0 measured 1486.35–1817.50 ms. Every primary run produced the same transcript for the JFK clip. These are measured outcomes on this specific device, model, input, runtime, and four-thread configuration—not a general claim about Whisper, Apple Silicon, or Arm hardware.
 
+We then ran the same protocol over a SQLite-backed preset corpus: three public-domain clips, five measured runs per profile per clip, and 30 measured processes. Median paired speedup was **1.5519×**, with a deterministic bootstrap 95% interval of **1.4950–1.6162×**. Corpus WER was 6.9% FP16 and 8.3% Q4_0; the difference is one additional Q4 word error on the deliberately difficult Apollo radio clip. The two archival speech clips retained exact profile-to-profile transcript agreement.
+
 ## How it works
 
-The React/TypeScript UI is local. A small Node service inspects the host, launches the native inference processes sequentially, and writes structured results. Judge Mode can run a benchmark or replay an existing result, visibly labelled as a replay. The app does not pretend two lanes executed concurrently.
+The React/TypeScript UI is local. A small Node service reads a real SQLite preset database, inspects the host, launches the native inference processes sequentially, streams lane/run progress over server-sent events, and writes structured results. Judge Mode can run a benchmark or replay an existing result, visibly labelled as a replay. The app does not pretend two lanes executed concurrently. The static hosted Judge Mode provides zero-install evidence access; local setup enables native benchmarking.
 
 After setup, the benchmark path uses local model artifacts and local inference; it does not require an inference API or audio upload.
 

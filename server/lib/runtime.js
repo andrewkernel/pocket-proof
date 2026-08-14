@@ -44,7 +44,7 @@ async function resolveEntry(key, envName, executable = false) {
   return candidates[0];
 }
 
-export async function resolveRuntime() {
+export async function resolveRuntime(options = {}) {
   const runtime = {
     referenceBinary: await resolveEntry("referenceBinary", "POCKETPROOF_REFERENCE_BENCH", true),
     optimizedBinary: await resolveEntry("optimizedBinary", "POCKETPROOF_OPTIMIZED_BENCH", true),
@@ -53,7 +53,7 @@ export async function resolveRuntime() {
     experimentalKleidiaiCli: await resolveEntry("experimentalKleidiaiCli", "POCKETPROOF_KLEIDIAI_CLI", true),
     referenceModel: await resolveEntry("referenceModel", "POCKETPROOF_REFERENCE_MODEL"),
     optimizedModel: await resolveEntry("optimizedModel", "POCKETPROOF_OPTIMIZED_MODEL"),
-    sample: await resolveEntry("sample", "POCKETPROOF_SAMPLE"),
+    sample: options.samplePath ? path.resolve(root, options.samplePath) : await resolveEntry("sample", "POCKETPROOF_SAMPLE"),
   };
 
   const checks = {};

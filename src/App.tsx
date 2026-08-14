@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { loadEvidence, normalizeReport, startRace } from "./api";
-import type { Aggregate, Profile, Report, SystemInfo } from "./types";
+import { assetUrl, loadCorpusSummary, loadEvidence, loadHistory, loadMediaCatalog, normalizeReport, startRace } from "./api";
+import type { Aggregate, CorpusSummary, MediaClip, Profile, Report, SystemInfo } from "./types";
 
-type LaneState = Record<string, { status: string; elapsedMs?: number; rssBytes?: number }>;
+type LaneState = Record<string, { status: string; detail?: string; elapsedMs?: number; rssBytes?: number }>;
 
 const formatMs = (value?: number) => value === undefined
   ? "—"
@@ -13,8 +13,8 @@ const formatMs = (value?: number) => value === undefined
 const formatBytes = (value?: number) => value === undefined
   ? "—"
   : value >= 1024 ** 3
-    ? `${(value / 1024 ** 3).toFixed(2)} GB`
-    : `${(value / 1024 ** 2).toFixed(0)} MB`;
+    ? `${(value / 1024 ** 3).toFixed(2)} GiB`
+    : `${(value / 1024 ** 2).toFixed(0)} MiB`;
 
 const percent = (value?: number, digits = 1) => value === undefined ? "—" : `${(value * 100).toFixed(digits)}%`;
 const profileLabel = (profile: Profile) => [
@@ -52,13 +52,62 @@ function useComparison(report: Report | null) {
 
 function ProofStrip({ system, report }: { system?: SystemInfo; report: Report | null }) {
   const architecture = system?.architecture ?? report?.system?.architecture;
-  const binary = system?.binaryArchitecture ?? report?.system?.binaryArchitecture ?? architecture;
+  const recordedBinaryVerified = report?.profiles.length
+    ? report.profiles.every((profile) => profile.runtime?.file?.includes("arm64") && profile.runtime?.lipo?.includes("arm64"))
+    : false;
+  const binary = system?.binaryArchitecture ?? report?.system?.binaryArchitecture ?? (recordedBinaryVerified ? "arm64" : undefined);
   return (
     <div className="proof-strip" aria-label="Local inference proof">
       <span><i className="proof-dot" aria-hidden="true" /> Local inference</span>
       <span>{architecture ? architecture.toUpperCase() : "Architecture pending"}</span>
       <span>{binary ? `Native binary: ${binary}` : "Network not required after setup"}</span>
     </div>
+  );
+}
+
+function MediaLibrary({ clips, selectedId, onSelect, disabled }: {
+  clips: MediaClip[];
+  selectedId?: string;
+  onSelect: (id: string) => void;
+  disabled: boolean;
+}) {
+  const selected = clips.find((clip) => clip.id === selectedId) ?? clips[0];
+  if (!selected) {
+    return <section className="media-library media-library--empty" aria-label="Preset media library"><p>Preset media database unavailable. Run <code>npm run media:verify</code>.</p></section>;
+  }
+  return (
+    <section className="media-library" aria-labelledby="media-library-title">
+      <div className="media-copy">
+        <p className="eyebrow">Verified preset database</p>
+        <h2 id="media-library-title">Choose a licensed test clip.</h2>
+        <p>Each preview maps to a checksum-pinned 16 kHz mono WAV, reference transcript, license record, and benchmark ID.</p>
+        <div className="clip-picker" aria-label="Preset benchmark clips">
+          {clips.map((clip) => (
+            <button
+              type="button"
+              key={clip.id}
+              className={clip.id === selected.id ? "clip-option is-selected" : "clip-option"}
+              aria-pressed={clip.id === selected.id}
+              onClick={() => onSelect(clip.id)}
+              disabled={disabled}
+            >
+              <span><strong>{clip.title}</strong><small>{clip.speaker}</small></span>
+              <span>{formatMs(clip.durationMs)}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <figure className="clip-preview">
+        <video key={selected.id} controls preload="metadata" poster={selected.posterPath ? assetUrl(selected.posterPath) : undefined} aria-label={`${selected.title} preview`}>
+          <source src={assetUrl(selected.videoPath)} type="video/mp4" />
+          Your browser does not support the video preview.
+        </video>
+        <figcaption>
+          <span><strong>{selected.title}</strong> · {selected.difficulty}</span>
+          <span>{selected.source?.license ?? "License recorded in catalog"}</span>
+        </figcaption>
+      </figure>
+    </section>
   );
 }
 
@@ -85,7 +134,7 @@ function Lane({ profile, info, result, mode }: {
     <article className={`lane lane--${mode}`} aria-label={`${profile.label} benchmark lane`}>
       <header>
         <span className="lane-kicker">{mode === "reference" ? "Reference path" : "Recommended path"}</span>
-        <span className={`status status--${status.replace(/\s+/g, "-")}`}>{status}</span>
+        <span className={`status status--${status.replace(/\s+/g, "-")}`}>{info?.detail ?? status}</span>
       </header>
       <h3>{profile.label}</h3>
       <p className="lane-config">{profileLabel(profile) || "Configuration awaiting evidence"}</p>
@@ -96,6 +145,56 @@ function Lane({ profile, info, result, mode }: {
         <div><dt>Artifact</dt><dd>{formatBytes(result?.modelBytes ?? profile.model?.bytes)}</dd></div>
       </dl>
     </article>
+  );
+}
+
+function RunHistory({ reports }: { reports: Report[] }) {
+  if (!reports.length) return null;
+  return (
+    <section className="evidence-section history-section" aria-labelledby="history-title">
+      <div className="section-title"><div><p className="eyebrow">Immutable local results</p><h2 id="history-title">Benchmark history</h2></div></div>
+      <div className="history-list">
+        {reports.slice(0, 6).map((item) => {
+          const profiles = item.profiles;
+          const reference = profiles[0] ? metric(item, profiles[0]).inferenceMs : undefined;
+          const optimized = profiles[1] ? metric(item, profiles[1]).inferenceMs : undefined;
+          const ratio = reference && optimized ? reference / optimized : undefined;
+          return (
+            <article key={item.id}>
+              <span><strong>{item.input?.title ?? item.input?.id ?? "Recorded clip"}</strong><small>{item.source ?? "recorded"} · {item.createdAt ? new Date(item.createdAt).toLocaleString() : "time unavailable"}</small></span>
+              <span>{ratio ? `${ratio.toFixed(2)}×` : "—"}</span>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function CorpusEvidence({ summary }: { summary: CorpusSummary }) {
+  const interval = summary.aggregate.pairedSpeedupBootstrap95;
+  return (
+    <section className="evidence-section corpus-section" aria-labelledby="corpus-title">
+      <div className="section-title">
+        <div><p className="eyebrow">Multi-clip validation</p><h2 id="corpus-title">The gain holds across three licensed clips.</h2></div>
+        <span className="quality-chip">{summary.configuration.measuredProcessCount} measured processes</span>
+      </div>
+      <div className="corpus-overview">
+        <article><strong>{summary.aggregate.medianPairedSpeedup.toFixed(2)}×</strong><span>median paired speedup</span></article>
+        <article><strong>{interval.lower95.toFixed(2)}–{interval.upper95.toFixed(2)}×</strong><span>bootstrap 95% interval</span></article>
+        <article><strong>{percent(summary.aggregate.referenceCorpusWer)}</strong><span>FP16 corpus WER</span></article>
+        <article><strong>{percent(summary.aggregate.optimizedCorpusWer)}</strong><span>Q4 corpus WER</span></article>
+      </div>
+      <div className="table-scroll corpus-table" tabIndex={0} aria-label="Multi-clip corpus results, horizontally scrollable on small screens">
+        <table>
+          <thead><tr><th>Preset clip</th><th>Difficulty</th><th>FP16</th><th>Q4_0</th><th>Speedup</th><th>Q4 WER</th></tr></thead>
+          <tbody>{summary.perClip.map((clip) => (
+            <tr key={clip.clipId}><th scope="row">{clip.title}</th><td>{clip.difficulty}</td><td>{formatMs(clip.referenceMedianInferenceMs)}</td><td>{formatMs(clip.optimizedMedianInferenceMs)}</td><td>{clip.speedup.toFixed(2)}×</td><td>{percent(clip.optimizedWer)}</td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <p className="corpus-scope">{summary.scope} Q4 changed one additional word on the noisy Apollo radio clip; both archival speech clips retained exact profile-to-profile transcript agreement.</p>
+    </section>
   );
 }
 
@@ -165,7 +264,7 @@ function ResultReveal({ report }: { report: Report }) {
       <div>
         <p className="eyebrow">Measured comparison</p>
         <h2 id="reveal-title">The evidence, not a promise.</h2>
-        <p className="reveal-caption">Every value derives from this report’s measured profile aggregates. WER and transcript agreement describe this one 11 second sample only.</p>
+        <p className="reveal-caption">Every value derives from this report’s measured profile aggregates. WER and transcript agreement describe this one {report.input?.durationMs ? formatMs(report.input.durationMs) : "selected"} sample only.</p>
       </div>
       <div className="reveal-grid">
         {items.map((item) => (
@@ -271,6 +370,7 @@ function EvidenceDrawer({ report }: { report: Report }) {
   if (!comparison) return null;
   const rows = [
     ["What changed", <ul className="interventions">{report.profiles.map((profile) => <li key={profile.id}><strong>{profile.label}:</strong> {(profile.interventions?.length ? profile.interventions : [profileLabel(profile) || "No configuration metadata recorded"]).join(" · ")}</li>)}</ul>],
+    ["What did not win", <p>{report.findings?.rejectedIntervention ?? "No rejected intervention is recorded in this report."}</p>],
     ["Method", <p>Strategy: {report.strategy ?? "not recorded"}. Reported comparison values use stored aggregate measurements; repetitions: {comparison.base.runs ?? "not recorded"} / {comparison.better.runs ?? "not recorded"}.</p>],
     ["Raw provenance", <dl className="provenance"><div><dt>Report</dt><dd>{report.id}</dd></div><div><dt>Measured</dt><dd>{report.createdAt ? new Date(report.createdAt).toLocaleString() : "not recorded"}</dd></div><div><dt>Commit</dt><dd>{report.provenance?.gitCommit ?? "not recorded"}</dd></div><div><dt>Config hash</dt><dd>{report.provenance?.configHash ?? "not recorded"}</dd></div></dl>],
   ] as const;
@@ -302,9 +402,14 @@ function NoEvidence({ error, onRetry }: { error?: string; onRetry: () => void })
 }
 
 export default function App() {
+  const staticJudgeMode = import.meta.env.VITE_STATIC_JUDGE_MODE === "true";
   const [report, setReport] = useState<Report | null>(null);
   const [system, setSystem] = useState<SystemInfo>();
   const [origin, setOrigin] = useState<"api" | "fallback" | "none">("none");
+  const [clips, setClips] = useState<MediaClip[]>([]);
+  const [selectedClipId, setSelectedClipId] = useState<string>();
+  const [history, setHistory] = useState<Report[]>([]);
+  const [corpus, setCorpus] = useState<CorpusSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string>();
@@ -315,10 +420,14 @@ export default function App() {
   const refresh = async () => {
     setLoading(true);
     setError(undefined);
-    const loaded = await loadEvidence();
+    const [loaded, loadedClips, loadedHistory, loadedCorpus] = await Promise.all([loadEvidence(), loadMediaCatalog(), loadHistory(), loadCorpusSummary()]);
     setReport(loaded.report);
     setSystem(loaded.system);
     setOrigin(loaded.origin);
+    setClips(loadedClips);
+    setHistory(loadedHistory);
+    setCorpus(loadedCorpus);
+    setSelectedClipId((current) => current ?? loaded.report?.input?.id ?? loadedClips.find((clip) => clip.featured)?.id ?? loadedClips[0]?.id);
     setLoading(false);
   };
 
@@ -329,10 +438,12 @@ export default function App() {
     setError(undefined);
     setLanes({ reference: { status: "validating" }, optimized: { status: "validating" } });
     try {
-      await startRace((event) => {
+      const sampleId = selectedClipId ?? report?.input?.id ?? "jfk";
+      await startRace(sampleId, (event) => {
         if (event.type === "lane.status") {
-          const update = event as { profileId: string; status: string };
-          setLanes((old) => ({ ...old, [update.profileId]: { ...old[update.profileId], status: update.status } }));
+          const update = event as { profileId: string; status: string; phase?: string; run?: number; total?: number };
+          const detail = update.run && update.total ? `${update.status} ${update.run}/${update.total}` : update.status;
+          setLanes((old) => ({ ...old, [update.profileId]: { ...old[update.profileId], status: update.status, detail } }));
         }
         if (event.type === "lane.metric") {
           const update = event as { profileId: string; elapsedMs?: number; rssBytes?: number };
@@ -351,6 +462,8 @@ export default function App() {
           if (value) {
             setReport(value);
             setOrigin("api");
+            setSelectedClipId(value.input?.id ?? sampleId);
+            setHistory((items) => [value, ...items.filter((item) => item.id !== value.id)]);
             requestAnimationFrame(() => resultRef.current?.focus());
           } else {
             setError("The completed run did not contain a valid benchmark report.");
@@ -370,6 +483,8 @@ export default function App() {
       setRunning(false);
     }
   };
+
+  const selectedClip = clips.find((clip) => clip.id === selectedClipId);
 
   const download = () => {
     if (!report) return;
@@ -406,9 +521,10 @@ export default function App() {
             </div>
             <div className="hero-meta" aria-label="Featured workload">
               <span>{system?.chip ?? report?.system?.chip ?? "Hardware inspection pending"}</span>
-              <span>{report?.input?.durationMs ? `${formatMs(report.input.durationMs)} sample` : "Sample defined by report"}</span>
+              <span>{selectedClip ? `${formatMs(selectedClip.durationMs)} preset` : report?.input?.durationMs ? `${formatMs(report.input.durationMs)} sample` : "Sample defined by report"}</span>
             </div>
           </section>
+          <MediaLibrary clips={clips} selectedId={selectedClipId} onSelect={setSelectedClipId} disabled={running} />
           <section className="race" aria-labelledby="race-title" aria-busy={running}>
             <div className="race-head">
               <div>
@@ -417,7 +533,9 @@ export default function App() {
               </div>
               <div className="race-actions">
                 {report?.source === "recorded" && <span className="recorded">Recorded evidence</span>}
-                <button type="button" className="button" onClick={() => void run()} disabled={running}>{running ? "Benchmark running…" : "Run full benchmark"}</button>
+                {staticJudgeMode
+                  ? <a className="button button-link" href="https://github.com/andrewkernel/pocket-proof#quick-start" target="_blank" rel="noreferrer">Run locally</a>
+                  : <button type="button" className="button" onClick={() => void run()} disabled={running}>{running ? "Benchmark running…" : "Run full benchmark"}</button>}
               </div>
             </div>
             {loading ? <LoadingEvidence /> : comparison ? (
@@ -428,9 +546,11 @@ export default function App() {
                   <Lane profile={comparison.optimized} info={lanes[comparison.optimized.id]} result={comparison.better} mode="optimized" />
                 </div>
                 <p className="race-note" aria-live="polite">{running
-                  ? "Twelve local CPU processes run sequentially. Expect roughly 30 seconds on the featured M5; duration varies by device. The reviewed result remains visible until the new report is complete."
+                  ? `Twelve local CPU processes run sequentially for ${selectedClip?.title ?? "the selected clip"}. Expect roughly 30–90 seconds on the featured M5; duration varies by clip and device. The reviewed result remains visible until the new report is complete.`
                   : origin === "fallback" || report?.source === "recorded"
-                    ? "Recorded run. Replayed evidence, not live process telemetry. Full validation launches 12 sequential local CPU processes."
+                    ? staticJudgeMode
+                      ? "Hosted Judge Mode replays checksum-pinned evidence. Clone the public repository to launch the 12 sequential native Arm64 processes locally."
+                      : "Recorded run. Replayed evidence, not live process telemetry. Full validation launches 12 sequential local CPU processes."
                     : "Measured independently. This comparison comes from the stored benchmark report. Full validation launches 12 sequential local CPU processes."}</p>
               </>
             ) : <NoEvidence error={error} onRetry={() => void refresh()} />}
@@ -438,8 +558,10 @@ export default function App() {
           {report && (
             <section ref={resultRef} tabIndex={-1} className="results" aria-label="Benchmark results">
               <ResultReveal report={report} />
+              {corpus && <CorpusEvidence summary={corpus} />}
               <TranscriptEvidence report={report} />
               <ProfileSummary report={report} />
+              <RunHistory reports={history} />
               <EvidenceDrawer report={report} />
               <TaglineReveal />
             </section>

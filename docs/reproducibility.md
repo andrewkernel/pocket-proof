@@ -38,6 +38,20 @@ Each result JSON must include:
 
 `npm run verify` should fail if architecture evidence, the intended lane configuration, a required report field, or result schema validity is missing. Treat UI cards as derived views of the report; do not maintain a separate hand-entered metrics source. Compare a newly generated result with [the featured report](../public/featured-report.json), but do not expect exact timing equality across thermal or machine state.
 
+## Preset database and corpus
+
+```sh
+npm run media:verify
+npm run benchmark -- --sample jfk --runs 5 --warmup 1 --threads 4
+npm run benchmark -- --sample armstrong-small-step --runs 5 --warmup 1 --threads 4
+npm run benchmark -- --sample roosevelt-infamy --runs 5 --warmup 1 --threads 4
+npm run benchmark:corpus
+```
+
+`benchmark/media-catalog.json` is the reviewable source. `benchmark/preset-media.sqlite` is the runtime database, and `public/media-catalog.json` is the static hosted fallback. Verification requires all three representations and every audio, video, and archival-source checksum to agree. An ordinary benchmark never replaces the reviewed artifact. Only a deliberately reviewed command with `--promote` can update `public/featured-report.json`.
+
+Run `npm run readiness` before release. It executes tests, type checking, the hosted production build, report/database integrity, secret scanning, media/demo checksums, and the submission artifact gate. Its 100-point result is deterministic release readiness, not a promise about subjective judging.
+
 ## Offline scope
 
 Provisioning may download open dependencies or models. Once provisioned, the inference benchmark should require no network connection. This is a functional property to test; do not represent it as network isolation unless a verification artifact establishes it.

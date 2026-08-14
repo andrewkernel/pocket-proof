@@ -1,0 +1,669 @@
+{
+  "schemaVersion": 1,
+  "id": "run-2026-08-14T01-57-09-288Z-0f41e478",
+  "createdAt": "2026-08-14T01:57:09.288Z",
+  "status": "complete",
+  "source": "recorded",
+  "strategy": "sequential-interleaved",
+  "executionStrategy": "sequential-interleaved",
+  "system": {
+    "architecture": "arm64",
+    "os": "macOS",
+    "osVersion": "26.5.2",
+    "kernelRelease": "25.5.0",
+    "model": "MacBook Pro",
+    "modelIdentifier": "Mac17,2",
+    "chip": "Apple M5",
+    "cores": "10 (4 Super and 6 Efficiency)",
+    "memoryBytes": 17179869184,
+    "translated": false,
+    "collectedAt": "2026-08-14T01:56:38.171Z"
+  },
+  "input": {
+    "id": "roosevelt-infamy",
+    "title": "A Date Which Will Live in Infamy",
+    "path": "samples/roosevelt-infamy.wav",
+    "videoPath": "/media/roosevelt-infamy.mp4",
+    "sha256": "2c53d400dd95a455ff7fc6f258f5d0b9c22cc5d50739687a6e61311de87f35e1",
+    "durationMs": 26803,
+    "referenceTranscript": "Yesterday, December 7, 1941—a date which will live in infamy—the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan.",
+    "difficulty": "archival",
+    "license": "Public domain"
+  },
+  "methodology": {
+    "measuredRuns": 5,
+    "warmupRuns": 1,
+    "threads": 4,
+    "order": "alternating AB/BA",
+    "clock": "whisper.cpp monotonic internal timing plus macOS /usr/bin/time",
+    "commandSemantics": {
+      "language": "English-only small.en model; whisper.cpp default language detection",
+      "gpu": "disabled at build with GGML_METAL=OFF; CPU backend only",
+      "decoder": "whisper.cpp defaults (beam size 5, best-of 5)",
+      "note": "Per-run command arrays are the exact process arguments used by this harness."
+    }
+  },
+  "profiles": [
+    {
+      "id": "reference",
+      "label": "FP16 Reference",
+      "precision": "F16",
+      "threads": 4,
+      "backend": "whisper.cpp CPU",
+      "model": {
+        "id": "Whisper small.en",
+        "bytes": 487614201,
+        "sha256": "c6138d6d58ecc8322097e0f987c32f1be8bb0a18532a3f88f734d1bbf9c41e5d",
+        "precision": "F16",
+        "format": "ggml"
+      },
+      "runtime": {
+        "path": "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "file": "vendor/stt-runner/build-reference/bin/whisper-cli: Mach-O 64-bit executable arm64",
+        "lipo": "Non-fat file: vendor/stt-runner/build-reference/bin/whisper-cli is architecture: arm64",
+        "sha256": "49b810861aba0e1c479f830ec4cf0c8c1388fcffc30e595efc659969f28341f7"
+      },
+      "interventions": [
+        "Native arm64",
+        "CPU",
+        "FP16 model representation"
+      ]
+    },
+    {
+      "id": "optimized",
+      "label": "Q4 Optimized",
+      "precision": "Q4_0",
+      "threads": 4,
+      "backend": "whisper.cpp CPU",
+      "model": {
+        "id": "Whisper small.en",
+        "bytes": 145471353,
+        "sha256": "37eb5db9875dae4fdf9b2727459ccbf2ee8ba9ef5590655bb13a7b573aae241b",
+        "precision": "Q4_0",
+        "format": "ggml"
+      },
+      "runtime": {
+        "path": "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "file": "vendor/stt-runner/build-reference/bin/whisper-cli: Mach-O 64-bit executable arm64",
+        "lipo": "Non-fat file: vendor/stt-runner/build-reference/bin/whisper-cli is architecture: arm64",
+        "sha256": "49b810861aba0e1c479f830ec4cf0c8c1388fcffc30e595efc659969f28341f7"
+      },
+      "interventions": [
+        "Native arm64",
+        "CPU",
+        "Q4_0 weight quantization"
+      ]
+    }
+  ],
+  "measurements": [
+    {
+      "profileId": "reference",
+      "phase": "warmup",
+      "sequence": 1,
+      "startedAt": "2026-08-14T01:56:38.482Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 3238.2,
+        "totalMs": 3250,
+        "modelLoadMs": 299.45,
+        "encodeMs": 2349.26,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 788119552,
+        "peakFootprintBytes": 791364664
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "warmup",
+      "sequence": 2,
+      "startedAt": "2026-08-14T01:56:41.740Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1982.07,
+        "totalMs": 1990,
+        "modelLoadMs": 54.68,
+        "encodeMs": 1531.14,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 449609728,
+        "peakFootprintBytes": 444466016
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 3,
+      "startedAt": "2026-08-14T01:56:43.740Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 3204.88,
+        "totalMs": 3220,
+        "modelLoadMs": 139.79,
+        "encodeMs": 2466.66,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 795443200,
+        "peakFootprintBytes": 790840400
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 4,
+      "startedAt": "2026-08-14T01:56:46.965Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1867.64,
+        "totalMs": 1880,
+        "modelLoadMs": 56.15,
+        "encodeMs": 1446.96,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 449822720,
+        "peakFootprintBytes": 444679008
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 5,
+      "startedAt": "2026-08-14T01:56:48.852Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2119.49,
+        "totalMs": 2130,
+        "modelLoadMs": 65.73,
+        "encodeMs": 1626.92,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 451117056,
+        "peakFootprintBytes": 446006112
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 6,
+      "startedAt": "2026-08-14T01:56:50.987Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 3175.82,
+        "totalMs": 3190,
+        "modelLoadMs": 140.63,
+        "encodeMs": 2398.91,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 766509056,
+        "peakFootprintBytes": 792675384
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 7,
+      "startedAt": "2026-08-14T01:56:54.185Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 3072.56,
+        "totalMs": 3090,
+        "modelLoadMs": 131.43,
+        "encodeMs": 2388.6,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 796753920,
+        "peakFootprintBytes": 791807032
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 8,
+      "startedAt": "2026-08-14T01:56:57.277Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1793.17,
+        "totalMs": 1800,
+        "modelLoadMs": 52.96,
+        "encodeMs": 1375.75,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 449036288,
+        "peakFootprintBytes": 443876168
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 9,
+      "startedAt": "2026-08-14T01:56:59.083Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 1831.78,
+        "totalMs": 1840,
+        "modelLoadMs": 54.12,
+        "encodeMs": 1406.46,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 449314816,
+        "peakFootprintBytes": 444154696
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 10,
+      "startedAt": "2026-08-14T01:57:00.929Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 3294.26,
+        "totalMs": 3310,
+        "modelLoadMs": 118.09,
+        "encodeMs": 2606.62,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 749502464,
+        "peakFootprintBytes": 790905936
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "reference",
+      "phase": "measured",
+      "sequence": 11,
+      "startedAt": "2026-08-14T01:57:04.243Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2999.82,
+        "totalMs": 3010,
+        "modelLoadMs": 112.25,
+        "encodeMs": 2289.68,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 797179904,
+        "peakFootprintBytes": 792216608
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    },
+    {
+      "profileId": "optimized",
+      "phase": "measured",
+      "sequence": 12,
+      "startedAt": "2026-08-14T01:57:07.266Z",
+      "command": [
+        "/usr/bin/time",
+        "-lp",
+        "vendor/stt-runner/build-reference/bin/whisper-cli",
+        "-m",
+        "models/ggml-small.en-q4_0.bin",
+        "-f",
+        "samples/roosevelt-infamy.wav",
+        "-t",
+        "4",
+        "-nt"
+      ],
+      "timing": {
+        "inferenceMs": 2006.58,
+        "totalMs": 2009.9999999999998,
+        "modelLoadMs": 63.99,
+        "encodeMs": 1566.67,
+        "decodeMs": 0
+      },
+      "memory": {
+        "peakRssBytes": 448774144,
+        "peakFootprintBytes": 443630432
+      },
+      "transcript": {
+        "text": "Yesterday, December 7, 1941, a date which will live in infamy, the United States of America was suddenly and deliberately attacked by naval and air forces of the Empire of Japan."
+      },
+      "quality": {
+        "wer": 0,
+        "normalizedWer": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "reference": {
+      "inferenceMs": 3175.82,
+      "totalMs": 3190,
+      "peakRssBytes": 795443200,
+      "modelBytes": 487614201,
+      "wer": 0,
+      "runs": 5,
+      "statistics": {
+        "inferenceMs": {
+          "count": 5,
+          "median": 3175.82,
+          "min": 2999.82,
+          "max": 3294.26,
+          "mean": 3149.468,
+          "stddev": 115.1509935693132
+        },
+        "totalMs": {
+          "count": 5,
+          "median": 3190,
+          "min": 3010,
+          "max": 3310,
+          "mean": 3164,
+          "stddev": 116.53325705565771
+        },
+        "modelLoadMs": {
+          "count": 5,
+          "median": 131.43,
+          "min": 112.25,
+          "max": 140.63,
+          "mean": 128.438,
+          "stddev": 12.802316977797414
+        },
+        "encodeMs": {
+          "count": 5,
+          "median": 2398.91,
+          "min": 2289.68,
+          "max": 2606.62,
+          "mean": 2430.094,
+          "stddev": 117.16311953853057
+        },
+        "peakRssBytes": {
+          "count": 5,
+          "median": 795443200,
+          "min": 749502464,
+          "max": 797179904,
+          "mean": 781077708.8,
+          "stddev": 21912515.566737544
+        },
+        "wer": {
+          "count": 5,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "stddev": 0
+        }
+      }
+    },
+    "optimized": {
+      "inferenceMs": 1867.64,
+      "totalMs": 1880,
+      "peakRssBytes": 449314816,
+      "modelBytes": 145471353,
+      "wer": 0,
+      "runs": 5,
+      "statistics": {
+        "inferenceMs": {
+          "count": 5,
+          "median": 1867.64,
+          "min": 1793.17,
+          "max": 2119.49,
+          "mean": 1923.732,
+          "stddev": 135.86105427973084
+        },
+        "totalMs": {
+          "count": 5,
+          "median": 1880,
+          "min": 1800,
+          "max": 2130,
+          "mean": 1932,
+          "stddev": 135.90437814875574
+        },
+        "modelLoadMs": {
+          "count": 5,
+          "median": 56.15,
+          "min": 52.96,
+          "max": 65.73,
+          "mean": 58.589999999999996,
+          "stddev": 5.868794595144733
+        },
+        "encodeMs": {
+          "count": 5,
+          "median": 1446.96,
+          "min": 1375.75,
+          "max": 1626.92,
+          "mean": 1484.5520000000001,
+          "stddev": 107.65849650631391
+        },
+        "peakRssBytes": {
+          "count": 5,
+          "median": 449314816,
+          "min": 448774144,
+          "max": 451117056,
+          "mean": 449613004.8,
+          "stddev": 926196.0843899094
+        },
+        "wer": {
+          "count": 5,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "stddev": 0
+        }
+      }
+    }
+  },
+  "comparison": {
+    "speedup": 1.700445481998672,
+    "latencyReductionPct": 41.191881151954455,
+    "memoryReductionPct": 43.51390319258496,
+    "modelReductionPct": 70.16671116188431,
+    "sampleQualityRetentionPct": 100,
+    "transcriptExactMatch": true
+  },
+  "findings": {
+    "selectedIntervention": "FP16 to Q4_0 model quantization",
+    "rejectedIntervention": "Same-Q4_0 KleidiAI builds were tested independently; no repeatable improvement was observed on this Apple M5 configuration."
+  },
+  "provenance": {
+    "appVersion": "0.1.0",
+    "gitCommit": "7809c4df8aa836e2a2b54b62aa672fbfe03b37a5",
+    "sttRunnerRevision": "bdabdb945f373651442a3693c0cd55d9af690e32",
+    "modelRepositoryRevision": "5359861c739e955e79d9a303bcbc70fb988958b1",
+    "configHash": "36def6a455f545b217b41bdd686c11a94cdcf5edb164563216268cd81fc50373"
+  }
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeTranscript, wordErrorRate } from "../server/lib/quality.js";
+import { normalizeTranscript, wordErrorRate, wordErrorStats } from "../server/lib/quality.js";
 
 describe("transcript quality", () => {
   it("normalizes case and punctuation", () => {
@@ -9,5 +9,9 @@ describe("transcript quality", () => {
   it("calculates word error rate", () => {
     expect(wordErrorRate("one two three four", "one two four")).toBe(0.25);
     expect(wordErrorRate("same words", "Same words!")).toBe(0);
+  });
+
+  it("retains error and reference-word counts for corpus aggregation", () => {
+    expect(wordErrorStats("one two three", "one too three")).toEqual({ errors: 1, referenceWords: 3, wer: 1 / 3 });
   });
 });

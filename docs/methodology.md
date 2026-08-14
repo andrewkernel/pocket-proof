@@ -33,3 +33,9 @@ The measured primary speedup is `2577.86 / 1616.44 = 1.5948×`. It applies only 
 ## Threats to validity
 
 Background load, thermal state, power mode, caching, and the one-clip corpus can affect outcomes. The raw report retains every measured run. The FP16 inference range was 2541.80–3353.81 ms; Q4_0 was 1486.35–1817.50 ms. A failed run must be retained and explained rather than silently dropped.
+
+## Preset corpus extension
+
+The featured artifact stays frozen as the original one-clip experiment. A separate [three-clip corpus summary](../benchmarks/corpus-summary.json) broadens the evidence without rewriting that historical report. The SQLite catalog contains three public-domain English clips spanning clean archival speech, noisy radio transmission, and archival room audio. Each clip receives one warm-up and five measured runs per profile at four threads, for 30 measured processes.
+
+Corpus timing uses real-time factor so clips of different duration remain comparable. The summary reports the median of 15 paired FP16/Q4 run ratios and a deterministic 10,000-resample bootstrap 95% interval. Corpus WER pools word errors over one deterministic output per profile and clip rather than multiplying the same transcript by the five performance repetitions. The noisy Apollo clip is intentionally retained even though it exposes a one-word Q4 quality regression.
