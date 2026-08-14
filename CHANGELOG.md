@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 1.0.0 — 2026-08-13
+
+- Reframed the product around the judge's first ten seconds: a human privacy problem, the measured outcome above the fold, and a one-click 2.6-second proof.
+- Added a clearly labelled timed replay in hosted Judge Mode so Q4_0 visibly finishes while FP16 is still running without misrepresenting the sequential source measurements.
+- Separated hosted preview selection from the fixed featured report to prevent accidental clip/evidence mismatch.
+- Added a shipping-decision narrative that connects local privacy, the controlled model change, and the measured WER cost.
+- Rewrote the Devpost entry around the official judging dimensions and the differentiating idea: every optimization claim carries reproducible evidence.
+- Rebuilt the 83-second captioned demo, social preview, desktop/mobile screenshots, and evidence frames around the new result-first story.
+- Added presentation-contract tests covering the first-screen hook, race ordering, replay honesty, Devpost narrative, image dimensions, and demo integrity.
+
 - Added final recorded benchmark documentation from `run-2026-08-13T22-01-38-888Z-c2b8e5df`.
 - Selected the FP16→Q4_0 model-quantization result as the headline: 1.5948× median speedup, 37.30% lower median latency, 43.72% lower median peak RSS, and 70.17% smaller model artifact on the featured Apple M5 workload.
 - Recorded normalized WER 0 and exact transcript agreement for both primary lanes on the 11-second JFK clip.

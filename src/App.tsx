@@ -65,11 +65,13 @@ function ProofStrip({ system, report }: { system?: SystemInfo; report: Report | 
   );
 }
 
-function MediaLibrary({ clips, selectedId, onSelect, disabled }: {
+function MediaLibrary({ clips, selectedId, onSelect, disabled, featuredId, staticJudgeMode }: {
   clips: MediaClip[];
   selectedId?: string;
   onSelect: (id: string) => void;
   disabled: boolean;
+  featuredId?: string;
+  staticJudgeMode: boolean;
 }) {
   const selected = clips.find((clip) => clip.id === selectedId) ?? clips[0];
   if (!selected) {
@@ -78,9 +80,9 @@ function MediaLibrary({ clips, selectedId, onSelect, disabled }: {
   return (
     <section className="media-library" aria-labelledby="media-library-title">
       <div className="media-copy">
-        <p className="eyebrow">Verified preset database</p>
-        <h2 id="media-library-title">Choose a licensed test clip.</h2>
-        <p>Each preview maps to a checksum-pinned 16 kHz mono WAV, reference transcript, license record, and benchmark ID.</p>
+        <p className="eyebrow">Three public-domain voices</p>
+        <h2 id="media-library-title">Test the claim beyond one clean clip.</h2>
+        <p>Each preview maps to a checksum-pinned 16 kHz mono WAV, reference transcript, license record, and benchmark ID. {staticJudgeMode ? "Hosted Judge Mode replays the featured JFK report; clone the project to benchmark any preset natively." : "Choose a preset for the next native benchmark."}</p>
         <div className="clip-picker" aria-label="Preset benchmark clips">
           {clips.map((clip) => (
             <button
@@ -91,7 +93,7 @@ function MediaLibrary({ clips, selectedId, onSelect, disabled }: {
               onClick={() => onSelect(clip.id)}
               disabled={disabled}
             >
-              <span><strong>{clip.title}</strong><small>{clip.speaker}</small></span>
+              <span><strong>{clip.title}</strong><small>{clip.speaker}{clip.id === featuredId ? " · featured proof" : ""}</small></span>
               <span>{formatMs(clip.durationMs)}</span>
             </button>
           ))}
@@ -123,11 +125,13 @@ function Waveform({ active = false }: { active?: boolean }) {
   );
 }
 
-function Lane({ profile, info, result, mode }: {
+function Lane({ profile, info, result, mode, progress, winner }: {
   profile: Profile;
   info?: LaneState[string];
   result?: Aggregate;
   mode: "reference" | "optimized";
+  progress?: number;
+  winner?: boolean;
 }) {
   const status = info?.status ?? (result ? "measured" : "ready");
   return (
@@ -139,12 +143,58 @@ function Lane({ profile, info, result, mode }: {
       <h3>{profile.label}</h3>
       <p className="lane-config">{profileLabel(profile) || "Configuration awaiting evidence"}</p>
       <Waveform active={status === "running"} />
+      {progress !== undefined && (
+        <div className="lane-progress" aria-label={`${Math.round(progress * 100)} percent of measured duration replayed`}>
+          <i style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }} />
+        </div>
+      )}
       <dl className="lane-metrics">
         <div><dt>Inference</dt><dd>{formatMs(info?.elapsedMs ?? result?.inferenceMs)}</dd></div>
         <div><dt>Peak RSS</dt><dd>{formatBytes(info?.rssBytes ?? result?.peakRssBytes)}</dd></div>
         <div><dt>Artifact</dt><dd>{formatBytes(result?.modelBytes ?? profile.model?.bytes)}</dd></div>
       </dl>
+      {winner && <p className="winner-badge"><span aria-hidden="true">✓</span> Finished first</p>}
     </article>
+  );
+}
+
+function HeroScorecard({ report, corpus }: { report: Report | null; corpus: CorpusSummary | null }) {
+  const comparison = useComparison(report);
+  const speed = corpus?.aggregate.medianPairedSpeedup ?? comparison?.ratio;
+  const processCount = corpus?.configuration.measuredProcessCount;
+  return (
+    <aside className="hero-scorecard" aria-label="Verified optimization outcome">
+      <div className="scorecard-label"><span>Measured outcome</span><span>{report?.system?.chip ?? "Arm64 device"}</span></div>
+      <div className="scorecard-primary">
+        <strong>{speed === undefined ? "—" : `${speed.toFixed(2)}×`}</strong>
+        <span>faster local transcription</span>
+      </div>
+      <div className="scorecard-grid">
+        <div><strong>{comparison?.memory === undefined ? "—" : percent(comparison.memory, 0)}</strong><span>less peak memory</span></div>
+        <div><strong>{comparison?.size === undefined ? "—" : percent(comparison.size, 0)}</strong><span>smaller model</span></div>
+        <div><strong>0</strong><span>audio uploads</span></div>
+      </div>
+      <p>{processCount ? `Speed: ${processCount} processes across three clips. Memory: featured JFK median.` : "Loading recorded evidence…"} Raw runs included.</p>
+    </aside>
+  );
+}
+
+function OptimizationStory({ report, corpus }: { report: Report; corpus: CorpusSummary | null }) {
+  const comparison = useComparison(report);
+  if (!comparison) return null;
+  return (
+    <section className="optimization-story" aria-labelledby="optimization-story-title">
+      <div className="story-heading">
+        <p className="eyebrow">The shipping decision</p>
+        <h2 id="optimization-story-title">Smaller weights. Faster speech. Visible cost.</h2>
+        <p>Pocket Proof changes one variable—FP16 weights to Q4_0—then makes the performance and quality tradeoff impossible to hide.</p>
+      </div>
+      <ol className="story-steps">
+        <li><span>01</span><div><strong>Keep speech private</strong><p>Inference runs locally through a verified native Arm64 binary. No transcription API and no audio upload.</p></div></li>
+        <li><span>02</span><div><strong>Reduce the model</strong><p>{formatBytes(comparison.base.modelBytes)} becomes {formatBytes(comparison.better.modelBytes)} while the runtime, clip, decoder and thread count stay fixed.</p></div></li>
+        <li><span>03</span><div><strong>Expose the tradeoff</strong><p>The featured clip retains an exact normalized transcript. Across the three-clip corpus, WER moves from {corpus ? percent(corpus.aggregate.referenceCorpusWer) : "—"} to {corpus ? percent(corpus.aggregate.optimizedCorpusWer) : "—"}.</p></div></li>
+      </ol>
+    </section>
   );
 }
 
@@ -212,8 +262,8 @@ function TaglineReveal() {
   const sectionRef = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
   const lines = [
-    "One workload. One changed variable.",
-    "Every claim tied to the raw run.",
+    "Don’t trust the speedup.",
+    "Make it prove itself.",
   ];
 
   useEffect(() => {
@@ -412,9 +462,12 @@ export default function App() {
   const [corpus, setCorpus] = useState<CorpusSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
+  const [replayState, setReplayState] = useState<"idle" | "running" | "complete">("idle");
+  const [replayElapsedMs, setReplayElapsedMs] = useState(0);
   const [error, setError] = useState<string>();
   const [lanes, setLanes] = useState<LaneState>({});
   const resultRef = useRef<HTMLElement>(null);
+  const raceRef = useRef<HTMLElement>(null);
   const comparison = useComparison(report);
 
   const refresh = async () => {
@@ -433,7 +486,26 @@ export default function App() {
 
   useEffect(() => { void refresh(); }, []);
 
+  useEffect(() => {
+    const duration = comparison?.base.inferenceMs;
+    if (replayState !== "running" || !duration) return;
+    const startedAt = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      const elapsed = Math.min(duration, now - startedAt);
+      setReplayElapsedMs(elapsed);
+      if (elapsed >= duration) {
+        setReplayState("complete");
+        return;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [comparison?.base.inferenceMs, replayState]);
+
   const run = async () => {
+    setReplayState("idle");
     setRunning(true);
     setError(undefined);
     setLanes({ reference: { status: "validating" }, optimized: { status: "validating" } });
@@ -485,6 +557,32 @@ export default function App() {
   };
 
   const selectedClip = clips.find((clip) => clip.id === selectedClipId);
+  const featuredClip = clips.find((clip) => clip.id === report?.input?.id) ?? selectedClip;
+  const raceClip = staticJudgeMode ? featuredClip : selectedClip;
+  const replayActive = replayState !== "idle";
+  const referenceReplayProgress = comparison?.base.inferenceMs && replayActive
+    ? Math.min(1, replayElapsedMs / comparison.base.inferenceMs)
+    : undefined;
+  const optimizedReplayProgress = comparison?.better.inferenceMs && replayActive
+    ? Math.min(1, replayElapsedMs / comparison.better.inferenceMs)
+    : undefined;
+  const replayLane = (result: Aggregate, progress?: number): LaneState[string] | undefined => {
+    if (!replayActive || progress === undefined) return undefined;
+    const finished = progress >= 1;
+    return {
+      status: finished ? "finished" : "running",
+      detail: finished ? "finished" : "timed replay",
+      elapsedMs: Math.min(replayElapsedMs, result.inferenceMs ?? replayElapsedMs),
+      rssBytes: result.peakRssBytes,
+    };
+  };
+
+  const startReplay = () => {
+    if (!comparison || replayState === "running") return;
+    setReplayElapsedMs(0);
+    setReplayState("running");
+    requestAnimationFrame(() => raceRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  };
 
   const download = () => {
     if (!report) return;
@@ -510,54 +608,71 @@ export default function App() {
         <div id="top" className="shell">
           <ProofStrip system={system} report={report} />
           <section className="hero">
-            <div>
-              <p className="eyebrow">Local AI optimization laboratory</p>
+            <div className="hero-copy">
+              <p className="eyebrow">Private speech AI · proven on Arm64</p>
               <h1>
-                <span>See exactly what</span>
-                {" "}
-                <span>optimization does to local AI.</span>
+                <span>Faster local speech.</span>
+                <span>Proof you can inspect.</span>
               </h1>
-              <p className="lede">A controlled transcription benchmark for Arm powered client hardware. Same input. Explicit profiles. Exportable evidence.</p>
+              <p className="lede">Pocket Proof makes private, offline transcription smaller and faster—then exposes every performance and quality tradeoff instead of asking you to trust a headline.</p>
+              <div className="hero-actions">
+                {staticJudgeMode
+                  ? <button type="button" className="button button--hero" onClick={startReplay} disabled={!comparison || replayState === "running"}>{replayState === "running" ? "Race replaying…" : "Watch the 2.6-second proof"}</button>
+                  : <button type="button" className="button button--hero" onClick={() => void run()} disabled={running}>{running ? "Benchmark running…" : "Run the native proof"}</button>}
+                <a className="hero-link" href="#evidence">Inspect every tradeoff <span aria-hidden="true">↓</span></a>
+              </div>
+              <p className="hero-trust">Same audio · same decoder · same four CPU threads · one changed variable</p>
             </div>
-            <div className="hero-meta" aria-label="Featured workload">
-              <span>{system?.chip ?? report?.system?.chip ?? "Hardware inspection pending"}</span>
-              <span>{selectedClip ? `${formatMs(selectedClip.durationMs)} preset` : report?.input?.durationMs ? `${formatMs(report.input.durationMs)} sample` : "Sample defined by report"}</span>
-            </div>
+            <HeroScorecard report={report} corpus={corpus} />
           </section>
-          <MediaLibrary clips={clips} selectedId={selectedClipId} onSelect={setSelectedClipId} disabled={running} />
-          <section className="race" aria-labelledby="race-title" aria-busy={running}>
+          <section ref={raceRef} id="race" className={`race ${replayState === "running" ? "is-replaying" : ""}`} aria-labelledby="race-title" aria-busy={running || replayState === "running"}>
             <div className="race-head">
               <div>
-                <p className="eyebrow">Optimization drag race</p>
-                <h2 id="race-title" aria-live="polite">{running ? "Benchmark process in progress" : report ? "Measured configuration comparison" : "Ready when evidence is available"}</h2>
+                <p className="eyebrow">The optimization drag race</p>
+                <h2 id="race-title" aria-live="polite">{running
+                  ? "Native benchmark in progress"
+                  : replayState === "running"
+                    ? "Replaying measured inference time"
+                    : replayState === "complete" && comparison?.ratio
+                      ? `${comparison.ratio.toFixed(2)}× faster. Same transcript on this clip.`
+                      : comparison?.base.inferenceMs && comparison?.better.inferenceMs
+                        ? `Watch ${formatMs(comparison.base.inferenceMs)} become ${formatMs(comparison.better.inferenceMs)}.`
+                        : "Ready when evidence is available"}</h2>
               </div>
               <div className="race-actions">
-                {report?.source === "recorded" && <span className="recorded">Recorded evidence</span>}
+                {report?.source === "recorded" && <span className="recorded">Measured sequentially</span>}
                 {staticJudgeMode
-                  ? <a className="button button-link" href="https://github.com/andrewkernel/pocket-proof#quick-start" target="_blank" rel="noreferrer">Run locally</a>
+                  ? <>
+                    <button type="button" className="button" onClick={startReplay} disabled={!comparison || replayState === "running"}>{replayState === "running" ? "Replaying…" : replayState === "complete" ? "Replay again" : "Replay measured race"}</button>
+                    <a className="text-button text-link" href="https://github.com/andrewkernel/pocket-proof#quick-start" target="_blank" rel="noreferrer">Run natively</a>
+                  </>
                   : <button type="button" className="button" onClick={() => void run()} disabled={running}>{running ? "Benchmark running…" : "Run full benchmark"}</button>}
               </div>
             </div>
             {loading ? <LoadingEvidence /> : comparison ? (
               <>
                 <div className="lane-grid">
-                  <Lane profile={comparison.reference} info={lanes[comparison.reference.id]} result={comparison.base} mode="reference" />
+                  <Lane profile={comparison.reference} info={replayLane(comparison.base, referenceReplayProgress) ?? lanes[comparison.reference.id]} result={comparison.base} mode="reference" progress={referenceReplayProgress} />
                   <div className="versus" aria-hidden="true">VS</div>
-                  <Lane profile={comparison.optimized} info={lanes[comparison.optimized.id]} result={comparison.better} mode="optimized" />
+                  <Lane profile={comparison.optimized} info={replayLane(comparison.better, optimizedReplayProgress) ?? lanes[comparison.optimized.id]} result={comparison.better} mode="optimized" progress={optimizedReplayProgress} winner={replayActive && optimizedReplayProgress === 1} />
                 </div>
                 <p className="race-note" aria-live="polite">{running
-                  ? `Twelve local CPU processes run sequentially for ${selectedClip?.title ?? "the selected clip"}. Expect roughly 30–90 seconds on the featured M5; duration varies by clip and device. The reviewed result remains visible until the new report is complete.`
+                  ? `Twelve local CPU processes run sequentially for ${raceClip?.title ?? "the selected clip"}. Expect roughly 30–90 seconds on the featured M5; duration varies by clip and device. The reviewed result remains visible until the new report is complete.`
+                  : replayState === "running"
+                    ? "Timed visualization of stored median inference durations—not live telemetry. The source processes were measured sequentially to avoid resource contention."
                   : origin === "fallback" || report?.source === "recorded"
                     ? staticJudgeMode
-                      ? "Hosted Judge Mode replays checksum-pinned evidence. Clone the public repository to launch the 12 sequential native Arm64 processes locally."
+                      ? `Hosted Judge Mode replays the checksum-pinned ${raceClip?.title ?? "featured"} report. The replay preserves measured relative duration; clone the repository to launch all 12 native Arm64 processes.`
                       : "Recorded run. Replayed evidence, not live process telemetry. Full validation launches 12 sequential local CPU processes."
                     : "Measured independently. This comparison comes from the stored benchmark report. Full validation launches 12 sequential local CPU processes."}</p>
               </>
             ) : <NoEvidence error={error} onRetry={() => void refresh()} />}
           </section>
           {report && (
-            <section ref={resultRef} tabIndex={-1} className="results" aria-label="Benchmark results">
+            <section ref={resultRef} id="evidence" tabIndex={-1} className="results" aria-label="Benchmark results">
               <ResultReveal report={report} />
+              <OptimizationStory report={report} corpus={corpus} />
+              <MediaLibrary clips={clips} selectedId={selectedClipId} onSelect={setSelectedClipId} disabled={running || replayState === "running"} featuredId={report.input?.id} staticJudgeMode={staticJudgeMode} />
               {corpus && <CorpusEvidence summary={corpus} />}
               <TranscriptEvidence report={report} />
               <ProfileSummary report={report} />
@@ -570,7 +685,7 @@ export default function App() {
         </div>
       </main>
       <footer>
-        <span className="footer-mark">Pocket Proof · local benchmark evidence, not cloud telemetry.</span>
+        <span className="footer-mark">Pocket Proof · make every speedup prove itself.</span>
         <nav aria-label="Project links">
           <a href="https://github.com/andrewkernel/pocket-proof" target="_blank" rel="noreferrer">Source</a>
           <a href="https://github.com/andrewkernel/pocket-proof/blob/main/docs/reproducibility.md" target="_blank" rel="noreferrer">Reproduce</a>

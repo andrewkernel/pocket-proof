@@ -1,60 +1,133 @@
-# Pocket Proof — Devpost draft
+# Pocket Proof — Private speech AI, with receipts
 
-Source: <https://github.com/andrewkernel/pocket-proof>
+**Tagline:** Make local transcription faster on Arm—and inspect every tradeoff before you ship it.
 
-Hosted Judge Mode: <https://andrewkernel.github.io/pocket-proof/>
+- Live Judge Mode: <https://andrewkernel.github.io/pocket-proof/>
+- Source and reproduction: <https://github.com/andrewkernel/pocket-proof>
+- Track: Mobile AI
 
-## Project overview
+## The eight-second version
 
-Pocket Proof is an interactive, reproducible optimization laboratory for local speech-to-text on Arm-powered client hardware. It makes one question visible: **what does a verified optimization change for a real local AI workload?**
+Local speech AI is private, but large models are slow and memory hungry. Pocket Proof demonstrates a measured alternative on a native Arm64 Apple M5:
 
-For the Mobile AI track, Pocket Proof runs transcription locally on a native Arm64 Apple-silicon laptop and turns a controlled benchmark into a clear developer experience: hardware proof, configuration inspection, sequential recorded race replay, transcript/quality comparison, and one-click export of the source data.
+- **1.55× faster** median paired transcription across three licensed clips
+- **44% less** peak memory on the featured measurement
+- **70% smaller** model artifact
+- **zero audio uploads** after setup
 
-The track explicitly covers local AI on Arm-powered laptops and lists transcription as an example workload. [Track details](https://arm-ai-optimization-challenge.devpost.com/details/trackdetails)
+Then it does something most optimization demos do not: it exposes the quality cost, raw runs, hashes, hardware proof, rejected experiments, and exact reproduction path.
 
-## What we optimized
+Anyone can publish a faster number. **Pocket Proof shows whether you should believe it—and whether the tradeoff is worth shipping.**
 
-We used Arm’s official [STT-Runner](https://github.com/Arm-Examples/STT-Runner) / whisper.cpp path as a native Arm64 CPU runtime and compared Whisper small.en FP16 against its Q4_0 weight-quantized artifact. Both lanes used the **same** `USE_KLEIDIAI=OFF` native Arm64 binary, 11-second JFK WAV input, English decoding, and four threads. The deliberate intervention is FP16→Q4_0 model representation.
+## Inspiration
 
-We separately tested the KleidiAI build switch with the same Q4_0 model in seven interleaved pairs. It was neutral/slightly slower on this Apple M5 (0.98× ON/OFF mean), so we do not attribute the primary gain to KleidiAI.
+On-device AI promises privacy, low latency, and offline operation. But optimization claims are often reduced to a single benchmark number with no visible control, quality comparison, or way to reproduce the result.
 
-## Results
+We wanted to answer a more useful question: *what actually changes when a developer optimizes AI for an Arm-powered laptop?*
 
-The recorded report is [`run-2026-08-13T22-01-38-888Z-c2b8e5df`](../public/featured-report.json), collected on an Apple M5 MacBook Pro, macOS 26.5.2, 16 GB memory. After one warm-up, five runs per lane were measured in alternating AB/BA order.
+Speech-to-text makes that question tangible. A recording either stays on the device or it does not. A transcript is either fast enough or it is not. And a smaller model is only valuable if its words remain useful.
 
-| Outcome | FP16 | Q4_0 | Change |
-| --- | ---: | ---: | ---: |
-| Median inference | 2577.86 ms | 1616.44 ms | **1.5948× faster / 37.30% lower latency** |
-| Median peak RSS | 791,117,824 B | 445,251,584 B | **43.72% less** |
-| Model artifact | 487,614,201 B | 145,471,353 B | **70.17% smaller** |
-| Normalized WER | 0 | 0 | Exact transcript match |
+## What it does
 
-FP16 measured 2541.80–3353.81 ms; Q4_0 measured 1486.35–1817.50 ms. Every primary run produced the same transcript for the JFK clip. These are measured outcomes on this specific device, model, input, runtime, and four-thread configuration—not a general claim about Whisper, Apple Silicon, or Arm hardware.
+Pocket Proof is an on-device transcription experience, optimization drag race, and reproducibility instrument in one product.
 
-We then ran the same protocol over a SQLite-backed preset corpus: three public-domain clips, five measured runs per profile per clip, and 30 measured processes. Median paired speedup was **1.5519×**, with a deterministic bootstrap 95% interval of **1.4950–1.6162×**. Corpus WER was 6.9% FP16 and 8.3% Q4_0; the difference is one additional Q4 word error on the deliberately difficult Apollo radio clip. The two archival speech clips retained exact profile-to-profile transcript agreement.
+Open Judge Mode and the result is visible immediately. Press **Watch the 2.6-second proof** and a timed replay shows the Q4_0 profile finish while the FP16 reference is still running. The replay is explicitly labelled: the source processes were measured sequentially to avoid resource contention.
 
-## How it works
+From there a judge can:
 
-The React/TypeScript UI is local. A small Node service reads a real SQLite preset database, inspects the host, launches the native inference processes sequentially, streams lane/run progress over server-sent events, and writes structured results. Judge Mode can run a benchmark or replay an existing result, visibly labelled as a replay. The app does not pretend two lanes executed concurrently. The static hosted Judge Mode provides zero-install evidence access; local setup enables native benchmarking.
+- inspect latency, peak RSS, model size, transcript, and WER;
+- preview three public-domain speech clips backed by a real SQLite catalog;
+- see the multi-clip confidence interval and the noisy-audio quality cost;
+- inspect exactly what changed and what stayed fixed;
+- export the complete machine-readable report; and
+- clone the project to run the native benchmark locally.
 
-After setup, the benchmark path uses local model artifacts and local inference; it does not require an inference API or audio upload.
+## The controlled optimization
 
-## Reproduce
+We compared Whisper `small.en` FP16 with its Q4_0 weight-quantized representation using Arm's STT-Runner / whisper.cpp path.
 
-```sh
-npm install
-bash scripts/setup-runtime.sh
-npm run benchmark -- --runs 5 --warmup 1 --threads 4
-npm run verify
-npm run dev
-```
+Both headline lanes use:
 
-See [the repository README](../README.md), [methodology](../docs/methodology.md), [reproducibility guide](../docs/reproducibility.md), and [Arm platform notes](../docs/arm-notes.md). Every result retains host, model, binary, configuration, raw-run, and quality provenance.
+- the same 11-second JFK input;
+- the same native Arm64 CPU binary;
+- the same English decoder;
+- the same four-thread configuration; and
+- `USE_KLEIDIAI=OFF`.
 
-## Arm relevance
+The intended intervention is only **FP16 → Q4_0 model representation**.
 
-The project proves native Arm64 execution and measures a local AI optimization on an Arm-powered laptop. It reports the KleidiAI result honestly: no repeatable same-model gain in the tested M5 CPU configuration. It does not infer unsupported M5 ISA features or claim an internal kernel/accelerator without evidence. This scope makes the result useful and auditable by other Arm developers.
+On the featured clip, median inference falls from **2577.86 ms to 1616.44 ms**: **1.5948× faster**, with **43.72% lower peak RSS** and a model artifact reduced from **487,614,201 to 145,471,353 bytes**. Both profiles produce the same normalized transcript on this clip.
+
+## We tested the claim beyond the hero clip
+
+The preset database contains clean JFK speech, noisy Apollo radio, and archival Roosevelt speech. Every entry maps an MP4 preview to a checksum-pinned 16 kHz mono WAV, reference transcript, source, license, and benchmark identifier.
+
+Five measured runs per profile per clip produced **30 measured processes**:
+
+| Corpus result | FP16 | Q4_0 |
+| --- | ---: | ---: |
+| Median real-time factor | 0.1229 | 0.0773 |
+| Corpus WER | 6.9% | 8.3% |
+| Median paired speedup | — | **1.5519×** |
+| Bootstrap 95% interval | — | **1.4950–1.6162×** |
+
+The WER change is one additional Q4 word error on the deliberately difficult Apollo radio clip. The two archival speech clips retained exact profile-to-profile transcript agreement. Pocket Proof surfaces that cost instead of turning a one-clip result into a universal quality claim.
+
+## How we built it
+
+- **React + TypeScript + Vite** provide the judge-facing application.
+- A small **Node.js service** inspects the host, reads the SQLite preset catalog, launches native inference, streams progress with server-sent events, and persists immutable reports.
+- **Arm STT-Runner and whisper.cpp** provide the native Arm64 speech runtime.
+- A closed **JSON Schema** describes complete reports, including raw measurements, statistics, runtime identity, architecture evidence, artifact hashes, configuration hashes, and provenance.
+- Tests independently recompute stored statistics from raw runs rather than merely trusting the displayed totals.
+- GitHub Actions runs tests, type checking, builds, evidence verification, media verification, setup smoke checks, and secret scanning.
+
+Hosted Judge Mode provides a zero-install replay of the pinned evidence. Local mode runs one warm-up plus five measured trials per profile, alternated in AB/BA order and executed sequentially.
+
+## Why Arm
+
+Pocket Proof runs the workload locally on an Arm-powered client device and verifies both host and binary architecture as `arm64`. This directly serves the Mobile AI track's focus on private, responsive, offline-capable inference on phones, tablets, and laptops.
+
+It is not an API wrapper: after runtime/model setup, the audio stays local and transcription is performed by native processes on the client CPU.
+
+## The experiment that did not win
+
+We separately isolated KleidiAI with the same Q4_0 model over seven interleaved pairs. On this exact Apple M5/four-thread configuration, `USE_KLEIDIAI=ON` measured **0.9832×** relative to OFF—no observed speedup.
+
+We kept that result. It is visible in the evidence instead of being quietly discarded, and the headline gain is never attributed to KleidiAI. That negative result is part of Pocket Proof's purpose: an optimization laboratory should help developers reject changes as confidently as it helps them ship wins.
+
+## Challenges
+
+The hardest problem was not drawing two lanes. It was maintaining a defensible experimental contract while producing an experience a judge can understand in seconds.
+
+We had to prevent concurrent CPU contention, preserve raw processes and hashes, separate single-clip quality from corpus quality, verify native execution rather than infer it from the host, and resist attributing a result to an acceleration path that did not improve this configuration.
+
+## Accomplishments
+
+- A dramatic, honest race backed only by recorded measurements
+- A complete native Arm64 reproduction path
+- A real licensed-media SQLite database rather than hard-coded demo data
+- Thirty corpus measurements plus the ten-run featured experiment
+- Quality, memory, latency, model-size, and provenance evidence in one report
+- A hosted, accessible judge experience and a reproducible local benchmark
+- Explicit negative evidence for an optimization that did not help
+
+## What we learned
+
+The fastest configuration is not automatically the best configuration. Q4_0 makes this workload materially faster and smaller, but the noisy clip shows a measurable quality cost. That is a product decision, not a footnote.
+
+We also learned that platform support is not the same as a measured platform win. Arm developers benefit from reports that distinguish “supported,” “executed,” and “proved faster.”
+
+## Why Pocket Proof should win
+
+Most optimization submissions end with a benchmark table. Pocket Proof turns the table into an experience, lets a judge inspect the transcript behind the number, and packages the complete experiment so another developer can reproduce or reject it.
+
+It combines the four judging dimensions in one coherent product: serious native implementation, unusually clear developer experience, reusable evidence artifacts, and a memorable proof moment that never trades credibility for spectacle.
+
+## What's next
+
+The report contract and lane model are designed to extend beyond Whisper. Next steps are adapters for image and language models, energy-per-inference measurements, and the same controlled experiment on additional Arm clients such as Android and Windows on Arm.
 
 ## Built with
 
-React, TypeScript, Vite, Node.js, Arm STT-Runner, whisper.cpp, and Arm KleidiAI. See [third-party notices](../THIRD_PARTY_NOTICES.md).
+React, TypeScript, Vite, Node.js, SQLite/sql.js, Arm STT-Runner, whisper.cpp, and Arm KleidiAI.

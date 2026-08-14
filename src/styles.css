@@ -231,11 +231,10 @@ a:focus-visible {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 680px) auto;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--space-7);
-  padding: var(--space-10) 0 var(--space-8);
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.72fr);
+  align-items: center;
+  gap: var(--space-9);
+  padding: var(--space-10) 0 var(--space-9);
 }
 
 .eyebrow {
@@ -255,9 +254,9 @@ h1 {
   background: linear-gradient(90deg, #ffffff, #9b9b9b);
   background-clip: text;
   -webkit-background-clip: text;
-  font-size: 48px;
-  line-height: 48px;
-  letter-spacing: -0.055em;
+  font-size: 64px;
+  line-height: 62px;
+  letter-spacing: -0.06em;
   font-weight: 600;
 }
 
@@ -282,34 +281,155 @@ h3 {
 }
 
 .lede {
-  max-width: 680px;
+  max-width: 650px;
   margin-bottom: 0;
   color: var(--text-secondary);
   font-size: 18px;
   line-height: 28px;
 }
 
-.hero-meta {
-  flex: none;
-  display: grid;
-  gap: var(--space-2);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  text-align: right;
+.hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
 }
 
-.hero-meta span {
-  padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--border);
+.button--hero {
+  min-height: 48px;
+  padding: var(--space-3) var(--space-5);
+}
+
+.hero-link,
+.text-link {
+  color: #dbe6e1;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hero-link {
+  padding: var(--space-3) 0;
+}
+
+.hero-link:hover,
+.text-link:hover {
+  color: var(--accent);
+}
+
+.hero-trust {
+  margin: var(--space-5) 0 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hero-scorecard {
+  overflow: hidden;
+  border: 1px solid var(--border-accent);
+  border-radius: 16px;
+  background: #0e1311;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+}
+
+.scorecard-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-accent);
+  color: #9eaaa6;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.scorecard-label span:first-child::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: var(--space-2);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(154, 247, 213, 0.55);
+}
+
+.scorecard-primary {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-6);
+}
+
+.scorecard-primary strong {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 72px;
+  line-height: 72px;
+  font-weight: 500;
+  letter-spacing: -0.07em;
+}
+
+.scorecard-primary span {
+  color: #e2ebe7;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.scorecard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border-accent);
+  border-bottom: 1px solid var(--border-accent);
+}
+
+.scorecard-grid div {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-right: 1px solid var(--border-accent);
+}
+
+.scorecard-grid div:last-child {
+  border-right: 0;
+}
+
+.scorecard-grid strong {
+  color: #f1f7f4;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  line-height: 28px;
+  font-weight: 500;
+}
+
+.scorecard-grid span,
+.hero-scorecard > p {
+  color: #8f9d98;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.hero-scorecard > p {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono);
 }
 
 .media-library {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
   gap: var(--space-7);
-  margin-bottom: var(--space-6);
+  margin: var(--space-8) 0 0;
   padding: var(--space-6);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -439,6 +559,10 @@ h3 {
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32);
 }
 
+.race.is-replaying {
+  border-color: var(--border-accent);
+}
+
 .race-head {
   display: flex;
   align-items: end;
@@ -464,6 +588,10 @@ h3 {
 .button-link {
   display: inline-block;
   text-decoration: none;
+}
+
+.text-link {
+  display: inline-block;
 }
 
 .button:hover:not(:disabled) {
@@ -548,6 +676,10 @@ h3 {
   color: var(--accent);
 }
 
+.status--finished {
+  color: var(--accent);
+}
+
 .status--failed {
   color: #ff9696;
 }
@@ -583,6 +715,41 @@ h3 {
 
 .waveform.is-active line:nth-child(3n) {
   animation-delay: -400ms;
+}
+
+.lane-progress {
+  height: 3px;
+  margin: calc(var(--space-2) * -1) 0 var(--space-4);
+  overflow: hidden;
+  background: #292929;
+}
+
+.lane-progress i {
+  display: block;
+  height: 100%;
+  background: #8d9b96;
+  transition: width 80ms linear;
+}
+
+.lane--optimized .lane-progress i {
+  background: var(--accent);
+}
+
+.winner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-accent);
+  border-radius: 999px;
+  color: var(--accent);
+  background: #101b17;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .lane-metrics {
@@ -698,6 +865,63 @@ dd {
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+}
+
+.optimization-story {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
+  gap: var(--space-8);
+  padding: var(--space-9) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.story-heading h2 {
+  max-width: 420px;
+}
+
+.story-heading > p:last-child {
+  max-width: 430px;
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.story-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.story-steps li {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: var(--space-4);
+  padding: var(--space-5) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.story-steps li > span {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.story-steps strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.story-steps p {
+  margin: 0;
+  color: #a5b0ac;
+  font-size: 14px;
+  line-height: 20px;
 }
 
 .reveal-metric {
@@ -1192,9 +1416,8 @@ footer a:hover {
     grid-template-columns: 1fr;
   }
 
-  .hero-meta {
-    max-width: 240px;
-    text-align: left;
+  .hero-scorecard {
+    max-width: 560px;
   }
 
   .media-library {
@@ -1203,6 +1426,11 @@ footer a:hover {
 
   .reveal {
     grid-template-columns: 1fr;
+  }
+
+  .optimization-story {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
   }
 
   .reveal-caption {
@@ -1259,11 +1487,6 @@ footer a:hover {
     line-height: 36px;
   }
 
-  .hero-meta {
-    width: 100%;
-    max-width: none;
-  }
-
   .race {
     padding: var(--space-4);
   }
@@ -1286,6 +1509,15 @@ footer a:hover {
   .race-actions {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .scorecard-primary {
+    padding: var(--space-5);
+  }
+
+  .scorecard-primary strong {
+    font-size: 56px;
+    line-height: 56px;
   }
 
   .lane-grid,
@@ -1340,6 +1572,35 @@ footer a:hover {
 
   .race-actions .button {
     width: 100%;
+  }
+
+  .hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-actions .button {
+    width: 100%;
+  }
+
+  .hero-link {
+    text-align: center;
+  }
+
+  .scorecard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scorecard-grid div,
+  .scorecard-grid div:last-child {
+    grid-template-columns: 64px 1fr;
+    align-items: center;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-accent);
+  }
+
+  .scorecard-grid div:last-child {
+    border-bottom: 0;
   }
 
   .lane {

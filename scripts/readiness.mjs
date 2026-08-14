@@ -72,9 +72,9 @@ await check("Potential Impact", "Immutable history and explicit promotion", 5, "
   if (!benchmark.includes("--promote") || !benchmark.includes("if (promote)")) throw new Error("Explicit featured-report promotion is missing.");
 });
 await check("Potential Impact", "Public repository and hosted Judge Mode automation", 5, "Git remote and GitHub Pages workflow", async () => {
-  const remote = run("git", ["remote", "get-url", "origin"]).trim();
+  const packageManifest = await readJson("package.json");
   const workflow = await readText(".github/workflows/pages.yml");
-  if (!remote.includes("andrewkernel/pocket-proof") || !workflow.includes("actions/deploy-pages@v4")) throw new Error("Public delivery configuration is incomplete.");
+  if (!packageManifest.repository?.url?.includes("andrewkernel/pocket-proof") || packageManifest.homepage !== "https://andrewkernel.github.io/pocket-proof/" || !workflow.includes("actions/deploy-pages@v4")) throw new Error("Public delivery configuration is incomplete.");
 });
 
 await check("WOW factor", "Under-three-minute captioned demo", 10, "assets/demo/demo-manifest.json", async () => {
@@ -85,7 +85,7 @@ await check("WOW factor", "Under-three-minute captioned demo", 10, "assets/demo/
   if (bytes.length !== manifest.bytes || sha256(bytes) !== manifest.sha256 || sha256(captions) !== manifest.captionsSha256) throw new Error("Demo integrity gate failed.");
 });
 await check("WOW factor", "Submission-grade screenshots and social preview", 5, "assets/screenshots, assets/demo, and social preview", async () => {
-  for (const file of ["assets/pocket-proof-social-preview.png", "assets/screenshots/judge-mode-hero.png", "assets/screenshots/judge-mode-mobile.png", "assets/demo/03-corpus.png"]) if ((await stat(path.join(root, file))).size < 10_000) throw new Error(`${file} is missing or empty.`);
+  for (const file of ["assets/pocket-proof-social-preview.png", "assets/screenshots/judge-mode-hero.png", "assets/screenshots/judge-mode-mobile.png", "assets/demo/01-hero.png", "assets/demo/02-race.png", "assets/demo/05-corpus.png", "assets/demo/06-ablation.png"]) if ((await stat(path.join(root, file))).size < 10_000) throw new Error(`${file} is missing or empty.`);
 });
 await check("WOW factor", "Evidence-first corpus visualization", 5, "multi-clip UI and measured report", async () => {
   const app = await readText("src/App.tsx");

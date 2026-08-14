@@ -28,6 +28,8 @@ Build Pocket Proof: an interactive, reproducible optimization laboratory for loc
 - Added and verified a SQLite preset catalog containing three licensed public-domain video/audio clips with transcript, source, license, and checksum provenance.
 - Captured five measured FP16 and Q4_0 runs per preset (30 measured processes): 1.5519× median paired speedup with a 1.4950–1.6162× bootstrap interval; corpus WER is 6.9% versus 8.3%.
 - Added live server-sent benchmark progress, saved run history, explicit featured-artifact promotion, hosted Judge Mode automation, and an 83-second captioned demo.
+- Completed the v1.0 judge-story overhaul: result-first hero, measured-outcome scorecard, one-click timed race replay, explicit replay honesty, shipping-decision narrative, new social card, revised screenshots, and a new result-first 83-second video.
+- Added presentation-contract tests and re-ran the complete 100/100 readiness gate after the overhaul.
 
 ## Blocked
 

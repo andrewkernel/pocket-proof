@@ -1,16 +1,20 @@
 # Pocket Proof
 
-**See exactly what optimization does to local AI.**
+**Faster local speech. Proof you can inspect.**
 
 [![CI](https://github.com/andrewkernel/pocket-proof/actions/workflows/ci.yml/badge.svg)](https://github.com/andrewkernel/pocket-proof/actions/workflows/ci.yml)
 ![Target: native arm64](https://img.shields.io/badge/target-native%20arm64-9ef3c8)
 ![License: MIT](https://img.shields.io/badge/license-MIT-e8e8e8)
 
-[Hosted Judge Mode](https://andrewkernel.github.io/pocket-proof/) · [83-second captioned demo](assets/demo/pocket-proof-demo.mp4) · [Source evidence](public/featured-report.json)
+[Replay the 2.6-second proof](https://andrewkernel.github.io/pocket-proof/) · [Captioned demo](assets/demo/pocket-proof-demo.mp4) · [Source evidence](public/featured-report.json)
 
 ![Pocket Proof social preview: a dark, cinematic local-AI optimization workspace with an audio waveform, Arm64 context, and two evidence lanes converging on a verified result panel.](assets/pocket-proof-social-preview.png)
 
-Pocket Proof is a local, reproducible optimization laboratory for speech-to-text on Arm-powered client hardware. It turns a controlled FP16→Q4_0 model-quantization experiment into an intelligible product experience: the same audio, binary architecture, and thread count are measured in two sequential lanes, then replayed as an evidence-labelled optimization race.
+Local speech AI keeps private recordings off the cloud, but large models are slow and memory hungry. Pocket Proof demonstrates a measured alternative on a native Arm64 Apple M5: **1.55× faster transcription across three licensed clips, 44% less peak memory on the featured measurement, a 70% smaller model, and zero audio uploads after setup.**
+
+Then it does something most optimization demos do not: it exposes the quality cost, raw runs, hashes, hardware proof, rejected experiments, and exact reproduction path. Anyone can publish a faster number. Pocket Proof shows whether you should believe it—and whether the tradeoff is worth shipping.
+
+The hosted experience turns the stored durations into a clearly labelled timed replay: Q4_0 finishes while FP16 is still running. The source benchmark processes are always measured sequentially to avoid resource contention.
 
 The project targets the [Arm Create: AI Optimization Challenge Mobile AI track](https://arm-ai-optimization-challenge.devpost.com/details/trackdetails). That track explicitly includes local AI on Arm-powered laptops and names transcription as a candidate workload.
 

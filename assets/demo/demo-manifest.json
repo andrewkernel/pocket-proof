@@ -1,21 +1,23 @@
 {
   "schemaVersion": 1,
-  "title": "Pocket Proof — measured local AI optimization on Arm64",
+  "title": "Pocket Proof — faster local speech, with receipts",
   "videoPath": "assets/demo/pocket-proof-demo.mp4",
   "captionsPath": "assets/demo/pocket-proof-demo.srt",
-  "durationMs": 83070,
+  "durationMs": 83370,
   "width": 1280,
   "height": 720,
   "videoCodec": "H.264",
   "audioCodec": "AAC",
   "audioDescription": "English synthetic narration with burned-in English captions; no music.",
-  "bytes": 2432877,
-  "sha256": "d3ebf22109e054fb83c459f98f00023c3efda000acce20c94542d4dc35730ed1",
-  "captionsSha256": "cd0dfeeb31c4c91c3d20cbb448017f14ad6e47a78d30e95a87a0b09453a7e0e7",
+  "bytes": 2994518,
+  "sha256": "b637a7bfcbfdeb6e932bf3715f2270329c5ce744f81002892814cad3b0f50ac6",
+  "captionsSha256": "73e23c87196b22736d71d5e00f2a66f5fd7b135e2bcfbf7360a1f540d9719ce6",
   "sourceFrames": [
-    { "path": "assets/demo/01-library.png", "sha256": "0cbc81691eebd6e90e73aa6e193634788fd343bdab675ee9d07c88c1a4213e70" },
-    { "path": "assets/demo/02-race.png", "sha256": "879a78bd2d6dc3701f5614917eb97cd51ee39ee6ec92a0341ea767501c422067" },
-    { "path": "assets/demo/03-corpus.png", "sha256": "c1cc37bf301ab433459185fd360d18f86a07e47c22154217b04408b888e6394d" },
-    { "path": "assets/demo/04-history.png", "sha256": "90beee9cf9d1d9dcd82c55daacd3705d06b9d1f60d9b4d03d4efabadb8797bd5" }
+    { "path": "assets/demo/01-hero.png", "sha256": "2ef3ea9621afff70a6bea6ce91fb2f01784d7c9b62662a73730b5d9b9a4935e3" },
+    { "path": "assets/demo/02-race.png", "sha256": "9df9beaa92070990b6c4a2ed252e55e2c4e951f5966ca3d5d8e0fb079c80f624" },
+    { "path": "assets/demo/03-result.png", "sha256": "7ffca74b2bc34fe6c5693864e9be895b9ddbf6a7f04fcc75537b090aadd7b42a" },
+    { "path": "assets/demo/04-library.png", "sha256": "7ef43b34ca92ff316b75a590838ebbb2935360f2163436198d032dd7a74e23d1" },
+    { "path": "assets/demo/05-corpus.png", "sha256": "26e647ebcdf9bc2864b4d4d48689b5e9b25fe3b670daf5e530401634e1833528" },
+    { "path": "assets/demo/06-ablation.png", "sha256": "d512be777f2390448dafbf0c2c9f4b8e6e1364954fee7319ed6ffa7aee5d847b" }
   ]
 }

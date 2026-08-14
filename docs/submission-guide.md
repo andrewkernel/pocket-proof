@@ -15,7 +15,7 @@
 3. Add the public repository: <https://github.com/andrewkernel/pocket-proof>.
 4. Add Hosted Judge Mode: <https://andrewkernel.github.io/pocket-proof/>.
 5. Upload `assets/demo/pocket-proof-demo.mp4` to YouTube or Vimeo as a public or unlisted video, then add that URL. It is 83 seconds, 720p, English narrated, captioned, and contains no music.
-6. Add `assets/pocket-proof-social-preview.png`, `assets/screenshots/judge-mode-hero.png`, and `assets/demo/03-corpus.png` as project images.
+6. Add `assets/pocket-proof-social-preview.png`, `assets/screenshots/judge-mode-hero.png`, and `assets/demo/02-race.png` as the first three project images. Follow with `assets/demo/05-corpus.png` for technical depth.
 7. In testing instructions, write: “Hosted Judge Mode is a replay of checksum-pinned evidence. For native execution on Apple Silicon, follow README Quick start; setup downloads the model, and inference stays local afterward.”
 8. Preview every link while signed out, confirm the repository shows the MIT license, and submit before **August 14, 2026 at 4:00 PM Pacific Time**.
 
