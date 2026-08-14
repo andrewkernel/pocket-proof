@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { assetUrl, loadCorpusSummary, loadEvidence, loadHistory, loadMediaCatalog, normalizeReport, startRace } from "./api";
+import { AudioLab, ProductComparison } from "./AudioLab";
 import type { Aggregate, CorpusSummary, MediaClip, Profile, Report, SystemInfo } from "./types";
 
 type LaneState = Record<string, { status: string; detail?: string; elapsedMs?: number; rssBytes?: number }>;
@@ -600,7 +601,8 @@ export default function App() {
       <header className="topbar">
         <a className="wordmark" href="#top" aria-label="Pocket Proof home"><span>P</span> Pocket Proof</a>
         <nav className="topbar-actions" aria-label="Judge Mode actions">
-          <span className="mode">Judge Mode</span>
+          <a className="topbar-link" href="#try-audio">Try audio</a>
+          <span className="mode">Live + Judge Mode</span>
           <button type="button" className="text-button" disabled={!report} onClick={download}>Export evidence</button>
         </nav>
       </header>
@@ -614,17 +616,19 @@ export default function App() {
                 <span>Faster local speech.</span>
                 <span>Proof you can inspect.</span>
               </h1>
-              <p className="lede">Pocket Proof makes private, offline transcription smaller and faster—then exposes every performance and quality tradeoff instead of asking you to trust a headline.</p>
+              <p className="lede">Turn your own recording into text without uploading it—then inspect the Arm benchmark that makes local transcription smaller and faster.</p>
               <div className="hero-actions">
+                <a className="button button--hero" href="#try-audio">Try your own audio</a>
                 {staticJudgeMode
-                  ? <button type="button" className="button button--hero" onClick={startReplay} disabled={!comparison || replayState === "running"}>{replayState === "running" ? "Race replaying…" : "Watch the 2.6-second proof"}</button>
-                  : <button type="button" className="button button--hero" onClick={() => void run()} disabled={running}>{running ? "Benchmark running…" : "Run the native proof"}</button>}
-                <a className="hero-link" href="#evidence">Inspect every tradeoff <span aria-hidden="true">↓</span></a>
+                  ? <button type="button" className="button button--secondary" onClick={startReplay} disabled={!comparison || replayState === "running"}>{replayState === "running" ? "Race replaying…" : "Watch the measured proof"}</button>
+                  : <button type="button" className="button button--secondary" onClick={() => void run()} disabled={running}>{running ? "Benchmark running…" : "Run the native proof"}</button>}
               </div>
-              <p className="hero-trust">Same audio · same decoder · same four CPU threads · one changed variable</p>
+              <p className="hero-trust">No account · no audio upload · live browser tool · native Arm64 proof</p>
             </div>
             <HeroScorecard report={report} corpus={corpus} />
           </section>
+          <AudioLab />
+          <ProductComparison />
           <section ref={raceRef} id="race" className={`race ${replayState === "running" ? "is-replaying" : ""}`} aria-labelledby="race-title" aria-busy={running || replayState === "running"}>
             <div className="race-head">
               <div>

@@ -17,6 +17,8 @@ Local speech AI is private, but large models are slow and memory hungry. Pocket 
 
 Then it does something most optimization demos do not: it exposes the quality cost, raw runs, hashes, hardware proof, rejected experiments, and exact reproduction path.
 
+The hosted product is not only a benchmark viewer. A judge can drop an English audio or video file into the page and watch the real Whisper decoder stream the transcript token by token inside the browser. No account, upload, or hosted transcription API is involved.
+
 Anyone can publish a faster number. **Pocket Proof shows whether you should believe it—and whether the tradeoff is worth shipping.**
 
 ## Inspiration
@@ -29,9 +31,11 @@ Speech-to-text makes that question tangible. A recording either stays on the dev
 
 ## What it does
 
-Pocket Proof is an on-device transcription experience, optimization drag race, and reproducibility instrument in one product.
+Pocket Proof is an on-device transcription product, optimization drag race, and reproducibility instrument in one experience.
 
-Open Judge Mode and the result is visible immediately. Press **Watch the 2.6-second proof** and a timed replay shows the Q4_0 profile finish while the FP16 reference is still running. The replay is explicitly labelled: the source processes were measured sequentially to avoid resource contention.
+The first action is useful on its own: choose a file, transcribe it locally in the browser, and copy or download the result. The page reports run time, audio duration, real-time factor, and the exact browser engine. First use downloads pinned model/runtime artifacts; later runs use browser cache. The selected recording never leaves the tab.
+
+Then press **Watch the measured proof** and a timed replay shows the native Q4_0 profile finish while the FP16 reference is still running. The replay is explicitly labelled: the source processes were measured sequentially to avoid resource contention.
 
 From there a judge can:
 
@@ -76,6 +80,7 @@ The WER change is one additional Q4 word error on the deliberately difficult Apo
 ## How we built it
 
 - **React + TypeScript + Vite** provide the judge-facing application.
+- **Transformers.js + ONNX Runtime Web** provide the optional browser-local Whisper Tiny English Q4 transcription worker. The browser path is explicitly separated from the native benchmark claim.
 - A small **Node.js service** inspects the host, reads the SQLite preset catalog, launches native inference, streams progress with server-sent events, and persists immutable reports.
 - **Arm STT-Runner and whisper.cpp** provide the native Arm64 speech runtime.
 - A closed **JSON Schema** describes complete reports, including raw measurements, statistics, runtime identity, architecture evidence, artifact hashes, configuration hashes, and provenance.
@@ -110,6 +115,7 @@ We had to prevent concurrent CPU contention, preserve raw processes and hashes, 
 - Thirty corpus measurements plus the ten-run featured experiment
 - Quality, memory, latency, model-size, and provenance evidence in one report
 - A hosted, accessible judge experience and a reproducible local benchmark
+- A real bring-your-own-file transcription workflow that remains local to the browser
 - Explicit negative evidence for an optimization that did not help
 
 ## What we learned
@@ -120,7 +126,7 @@ We also learned that platform support is not the same as a measured platform win
 
 ## Why Pocket Proof should win
 
-Most optimization submissions end with a benchmark table. Pocket Proof turns the table into an experience, lets a judge inspect the transcript behind the number, and packages the complete experiment so another developer can reproduce or reject it.
+Most optimization submissions end with a benchmark table. Pocket Proof begins with a product someone can use, turns the table into an experience, lets a judge inspect the transcript behind the number, and packages the complete experiment so another developer can reproduce or reject it.
 
 It combines the four judging dimensions in one coherent product: serious native implementation, unusually clear developer experience, reusable evidence artifacts, and a memorable proof moment that never trades credibility for spectacle.
 
@@ -130,4 +136,4 @@ The report contract and lane model are designed to extend beyond Whisper. Next s
 
 ## Built with
 
-React, TypeScript, Vite, Node.js, SQLite/sql.js, Arm STT-Runner, whisper.cpp, and Arm KleidiAI.
+React, TypeScript, Vite, Transformers.js, ONNX Runtime Web, Node.js, SQLite/sql.js, Arm STT-Runner, whisper.cpp, and Arm KleidiAI.

@@ -6,15 +6,23 @@
 ![Target: native arm64](https://img.shields.io/badge/target-native%20arm64-9ef3c8)
 ![License: MIT](https://img.shields.io/badge/license-MIT-e8e8e8)
 
-[Replay the 2.6-second proof](https://andrewkernel.github.io/pocket-proof/) · [Captioned demo](assets/demo/pocket-proof-demo.mp4) · [Source evidence](public/featured-report.json)
+[Try your own audio](https://andrewkernel.github.io/pocket-proof/#try-audio) · [Replay the measured proof](https://andrewkernel.github.io/pocket-proof/#race) · [Recording script](docs/demo-script.md) · [Source evidence](public/featured-report.json)
 
 ![Pocket Proof social preview: a dark, cinematic local-AI optimization workspace with an audio waveform, Arm64 context, and two evidence lanes converging on a verified result panel.](assets/pocket-proof-social-preview.png)
 
-Local speech AI keeps private recordings off the cloud, but large models are slow and memory hungry. Pocket Proof demonstrates a measured alternative on a native Arm64 Apple M5: **1.55× faster transcription across three licensed clips, 44% less peak memory on the featured measurement, a 70% smaller model, and zero audio uploads after setup.**
+Local speech AI keeps private recordings off the cloud, but large models are slow and memory hungry. Pocket Proof now lets anyone drop an English audio or video file into the hosted site and watch a real transcript arrive token by token from a quantized Whisper model running inside the browser—no account and no audio upload. It then demonstrates the native shipping improvement on an Arm64 Apple M5: **1.55× faster transcription across three licensed clips, 44% less peak memory on the featured measurement, a 70% smaller model, and zero audio uploads after setup.**
 
 Then it does something most optimization demos do not: it exposes the quality cost, raw runs, hashes, hardware proof, rejected experiments, and exact reproduction path. Anyone can publish a faster number. Pocket Proof shows whether you should believe it—and whether the tradeoff is worth shipping.
 
 The hosted experience turns the stored durations into a clearly labelled timed replay: Q4_0 finishes while FP16 is still running. The source benchmark processes are always measured sequentially to avoid resource contention.
+
+## Try it in the browser
+
+Open [Pocket Proof](https://andrewkernel.github.io/pocket-proof/#try-audio), choose an English audio or video file up to 25 MB, and press **Transcribe locally**. The first run downloads pinned Whisper Tiny English Q4 weights and the WebAssembly runtime; the browser caches them for later runs. Audio decoding and inference happen inside the tab. The real Whisper token streamer updates the transcript and technical decoder readout while inference is running; the completed result includes run time, audio duration, real-time factor, and the exact browser engine label.
+
+![Pocket Proof live browser transcription: a local Whisper decoder streams words beside the selected audio file while the 16 kHz PCM, Q4 weight, and WebAssembly CPU stages remain visible.](assets/screenshots/product-live.png)
+
+The browser tool is intentionally separate from the native benchmark claim. It demonstrates the private product workflow with Whisper Tiny English Q4 on browser WebAssembly; the measured Apple M5 evidence below uses Whisper small.en FP16 versus Q4_0 through native STT-Runner / whisper.cpp.
 
 The project targets the [Arm Create: AI Optimization Challenge Mobile AI track](https://arm-ai-optimization-challenge.devpost.com/details/trackdetails). That track explicitly includes local AI on Arm-powered laptops and names transcription as a candidate workload.
 

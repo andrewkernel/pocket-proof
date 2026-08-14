@@ -1,43 +1,54 @@
-# Demo script (target: 75–90 seconds)
+# Demo script (target: 80–90 seconds)
 
 The challenge permits an optional public video shorter than three minutes and says judges need not watch after that point. [Rules](https://arm-ai-optimization-challenge.devpost.com/rules)
 
-The finished captioned artifact is `assets/demo/pocket-proof-demo.mp4`; narration is in [demo-narration.md](demo-narration.md), and checksums are in `assets/demo/demo-manifest.json`.
+## Before recording
 
-## 0:00–0:08 — make the outcome unavoidable
+1. Use Chrome or Edge at 100% zoom and a 1440×900 or larger window.
+2. Open Hosted Judge Mode, press **Use the 11-second demo**, and transcribe it once. This caches the browser model so the recorded run feels like a product, not a download screen.
+3. Reload the page, return to the top, close unrelated tabs, enable Do Not Disturb, and start a window-only recording with macOS Screenshot (`Shift–Command–5`).
+4. Keep the cursor still while speaking. Move only when the narration calls for an action.
 
-Open on the new hero and scorecard: **1.55× faster, 44% less peak memory, 70% smaller, zero uploads**. Do not begin with setup, the preset database, or methodology.
+## 0:00–0:08 — state the product
 
-Voice: “Local speech AI keeps private recordings off the cloud—but large models are slow and memory hungry.”
+Open on the hero and scorecard.
 
-## 0:08–0:24 — the wow moment
+Voice: “Pocket Proof turns audio into text without uploading the recording—then proves why its native Arm path is worth shipping.”
 
-Press **Watch the 2.6-second proof**. Hold on the race while Q4 finishes and FP16 is still moving. Let the “Finished first” state breathe.
+## 0:08–0:25 — show the real SaaS action
 
-Voice: “The optimized profile finishes while the reference is still running.”
+Press **Try your own audio**, then **Use the 11-second demo**, then **Transcribe locally**. Let the decoder clock, pipeline stages, and transcript update live; then hold on the completed 11-second duration, run time, and real-time factor.
 
-## 0:24–0:38 — establish trust
+Voice: “This is real browser inference, not a canned transcript. These words are arriving from the Whisper decoder while the quantized model runs in this tab. The file never goes to Pocket Proof or a transcription API.”
 
-Keep both lanes and the sequential-measurement disclosure visible. Briefly expose the “What changed” evidence row.
+## 0:25–0:37 — explain why it is better
 
-Voice: “This is a timed replay of real sequential measurements, not fake concurrent telemetry. Same audio, decoder, threads, and native binary.”
+Scroll just enough to reveal **Privacy is the product. Proof is the advantage.** Keep the Pocket Proof column visible.
 
-## 0:38–0:53 — show the user consequence
+Voice: “Cloud APIs receive the recording. Plain local Whisper keeps it private but gives you little evidence. Pocket Proof combines local processing with a measured, inspectable shipping decision.”
 
-Show the exact transcript match and then the three-clip library. The story is private transcription that remains useful—not an abstract model benchmark.
+## 0:37–0:52 — deliver the benchmark wow moment
 
-## 0:53–1:07 — prove it generalizes and expose the cost
+Press **Replay measured race**. Hold while Q4 finishes and FP16 is still moving.
 
-Show the corpus panel: 30 processes, 1.55× paired median, 1.49–1.62 interval, and 6.9%→8.3% WER. State clearly that the noisy Apollo clip changes one additional word.
+Voice: “On this native Arm64 Apple M5, Q4 turns 2.58 seconds into 1.62—1.55 times faster across the full corpus, with 44 percent less peak memory and a 70 percent smaller model.”
 
-## 1:07–1:18 — credibility through negative evidence
+## 0:52–1:06 — establish credibility
 
-Open “What did not win” and show the neutral/slower same-Q4 KleidiAI result. Keep this short.
+Keep the sequential-measurement disclosure visible, then show the three-clip corpus and WER values.
 
-## 1:18–1:28 — memorable close
+Voice: “The race is a visualization of sequential measurements. Thirty real processes show the gain holds across three clips, while word error rate moves from 6.9 to 8.3 percent.”
 
-Return to the hero scorecard and export action.
+## 1:06–1:18 — show the uncomfortable evidence
 
-Voice: “Anyone can publish a faster number. Pocket Proof shows whether you should believe it—and gives you every raw run needed to reproduce the decision.”
+Open **What did not win**.
 
-End on the live Judge Mode and GitHub URLs. No third-party music, unlicensed assets, or marks implying endorsement.
+Voice: “Even the experiment that failed stays visible. KleidiAI showed no speedup on this configuration, so it is evidence—not the headline.”
+
+## 1:18–1:28 — close on the difference
+
+Return to the transcript result or hero.
+
+Voice: “Pocket Proof is useful before you trust the benchmark, and credible after you inspect it. Private speech AI, with receipts.”
+
+End on the live site and GitHub URLs. Do not add music or visual effects that compete with the transcript and race.

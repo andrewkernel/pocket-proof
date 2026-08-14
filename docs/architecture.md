@@ -1,8 +1,13 @@
 # Architecture
 
-Pocket Proof separates the product experience from the evidence it presents.
+Pocket Proof separates the live product experience from the native evidence it presents.
 
 ```text
+User audio/video ── browser decode ── Whisper Tiny EN Q4 / WASM worker ── live transcript
+       │                         (audio remains in the browser tab)
+       │
+       └──────────────────────────── separate evidence boundary ───────────────┐
+
 SQLite preset catalog + licensed MP4 preview + checksum-pinned WAV
           │
           ├── native Arm64 CPU, FP16, USE_KLEIDIAI=OFF ──┐
@@ -18,6 +23,7 @@ SQLite preset catalog + licensed MP4 preview + checksum-pinned WAV
 ## Product layers
 
 - **React + TypeScript + Vite:** local visual workspace, licensed preset selection, video preview, transcript/corpus comparison, immutable history, and Judge Mode.
+- **Browser transcription worker:** decodes a user-selected file to 16 kHz mono audio, loads pinned Transformers.js 4.2.0 and pinned ONNX Whisper Tiny English Q4 weights, runs CPU WebAssembly inference, streams real decoder text through `WhisperTextStreamer`, and returns final transcript/runtime metadata without uploading audio. This useful live path is not used as evidence for the native benchmark claim.
 - **Node orchestration service:** queries the SQLite catalog, validates inputs, runs subprocesses sequentially, streams real phase/run events over server-sent events, and stores structured results.
 - **STT-Runner / whisper.cpp:** native inference engine. The featured comparison uses one pinned, `USE_KLEIDIAI=OFF` Arm64 CPU binary so only FP16 versus Q4_0 model representation changes. Arm documents STT-Runner as macOS-aarch64-tested. [STT-Runner](https://github.com/Arm-Examples/STT-Runner)
 - **Artifact store:** append-only benchmark reports containing environment, binary, model, input, command/configuration, timing, memory measurements, transcript, and error data.

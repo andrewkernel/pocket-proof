@@ -1,15 +1,15 @@
 # Demo narration
 
-Local speech AI keeps private recordings off the cloud—but large models are slow and memory hungry. This is Pocket Proof, running on a native Arm64 Apple M5.
+Pocket Proof turns audio into text without uploading the recording—then proves why its native Arm path is worth shipping.
 
-The exact same transcription task takes 2.58 seconds with FP16 and 1.62 with Q4. The optimized profile finishes while the reference is still running: 1.59 times faster on this clip, 44 percent less peak memory, and a 70 percent smaller model.
+This is real browser inference, not a canned transcript. These words are arriving from the Whisper decoder, token by token, while the quantized model runs in this tab. The file never goes to Pocket Proof or a transcription API.
 
-This is a timed replay of real sequential measurements, not fake concurrent telemetry. Same audio, same decoder, same four CPU threads, and the same native binary. The only intended change is FP16 weights to Q4 zero.
+Cloud APIs receive the recording. Plain local Whisper keeps it private but gives you little evidence. Pocket Proof combines local processing with a measured, inspectable shipping decision.
 
-Speed is not enough. The featured clip keeps an exact normalized transcript. Across three licensed clips and thirty measured processes, the median paired speedup is 1.55 times, with a 1.49 to 1.62 bootstrap interval.
+On this native Arm64 Apple M5, Q4 turns 2.58 seconds into 1.62—1.55 times faster across the full corpus, with 44 percent less peak memory and a 70 percent smaller model.
 
-Pocket Proof also shows the price: corpus word error rate moves from 6.9 to 8.3 percent because the noisy Apollo clip changes one additional word.
+The race is a visualization of sequential measurements. Thirty real processes show the gain holds across three clips, while word error rate moves from 6.9 to 8.3 percent.
 
-Even the experiment that failed stays visible. KleidiAI produced no observed gain on this configuration, so it is evidence—not the headline.
+Even the experiment that failed stays visible. KleidiAI showed no speedup on this configuration, so it is evidence—not the headline.
 
-Anyone can publish a faster number. Pocket Proof shows whether you should believe it, whether the quality cost is worth shipping, and gives you every raw run needed to reproduce the decision.
+Pocket Proof is useful before you trust the benchmark, and credible after you inspect it. Private speech AI, with receipts.

@@ -1,9 +1,9 @@
 {
   "name": "pocket-proof",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
-  "description": "An interactive optimization laboratory for local AI on Arm-powered devices.",
+  "description": "Private browser-local transcription with an inspectable native Arm optimization benchmark.",
   "homepage": "https://andrewkernel.github.io/pocket-proof/",
   "repository": {
     "type": "git",

@@ -12,15 +12,36 @@ function pngDimensions(value: Buffer) {
 }
 
 describe("judge-facing presentation", () => {
-  test("opens with the outcome and puts the race before implementation detail", async () => {
+  test("opens with the outcome, offers a real product action, then proves it", async () => {
     const app = await text("src/App.tsx");
     const render = app.slice(app.indexOf("export default function App"));
     expect(render).toContain("Faster local speech.");
     expect(render).toContain("Proof you can inspect.");
-    expect(render).toContain("Watch the 2.6-second proof");
+    expect(render).toContain("Try your own audio");
+    expect(render).toContain("Watch the measured proof");
     expect(render).toContain("Timed visualization of stored median inference durations—not live telemetry.");
     expect(render.indexOf("className=\"hero\"")).toBeLessThan(render.indexOf("id=\"race\""));
+    expect(render.indexOf("<AudioLab />")).toBeLessThan(render.indexOf("id=\"race\""));
+    expect(render.indexOf("<ProductComparison />")).toBeLessThan(render.indexOf("id=\"race\""));
     expect(render.indexOf("id=\"race\"")).toBeLessThan(render.indexOf("<MediaLibrary"));
+  });
+
+  test("live file transcription is local, pinned, and kept separate from benchmark evidence", async () => {
+    const lab = await text("src/AudioLab.tsx");
+    const worker = await text("src/transcription.worker.ts");
+    expect(lab).toContain("Drop audio. Get text. Keep the file.");
+    expect(lab).toContain("your recording is never sent");
+    expect(lab).toContain("Live browser result · separate from the native Apple M5 benchmark below.");
+    expect(lab).toContain("Why this is better");
+    expect(lab).toContain("Decoder active");
+    expect(lab).toContain("stream-word");
+    expect(lab).toContain("Infer · WASM CPU");
+    expect(worker).toContain("@huggingface/transformers@4.2.0");
+    expect(worker).toContain("2575352d61be1bf7225cf8f8b268a4678025fc58");
+    expect(worker).toContain('device: "wasm"');
+    expect(worker).toContain('dtype: "q4"');
+    expect(worker).toContain("WhisperTextStreamer");
+    expect(worker).toContain('type: "partial"');
   });
 
   test("keeps hosted replay honest and the selected preview separate from featured evidence", async () => {
@@ -51,8 +72,12 @@ describe("judge-facing presentation", () => {
   test("social and demo assets are presentation-ready and integrity pinned", async () => {
     const social = await bytes("assets/pocket-proof-social-preview.png");
     const hero = await bytes("assets/screenshots/judge-mode-hero.png");
+    const product = await bytes("assets/screenshots/product-result.png");
+    const liveProduct = await bytes("assets/screenshots/product-live.png");
     expect(pngDimensions(social)).toEqual({ width: 1200, height: 630 });
-    expect(pngDimensions(hero)).toEqual({ width: 1512, height: 861 });
+    expect(pngDimensions(hero)).toEqual({ width: 1417, height: 861 });
+    expect(pngDimensions(product)).toEqual({ width: 1417, height: 754 });
+    expect(pngDimensions(liveProduct)).toEqual({ width: 1417, height: 754 });
 
     const manifest = JSON.parse(await text("assets/demo/demo-manifest.json"));
     const video = await bytes(manifest.videoPath);

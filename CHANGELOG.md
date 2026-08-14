@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.1.0 — 2026-08-14
+
+- Added a real bring-your-own-audio experience to hosted Judge Mode: local browser decoding, quantized Whisper Tiny English Q4 inference through WebAssembly, live token-by-token transcript streaming, transcript copy/download, run time, duration, and real-time factor.
+- Pinned the browser runtime to Transformers.js 4.2.0 and the browser model to immutable ONNX revision `2575352d61be1bf7225cf8f8b268a4678025fc58`; model/runtime files are cached after first use while audio stays in the tab.
+- Added a product comparison that explains the difference between cloud transcription, plain local Whisper, and Pocket Proof without conflating the browser preview with the native Apple M5 benchmark.
+- Reworked the hero and demo flow around a SaaS progression: try a file, watch the live decoder and local signal chain, understand the advantage, watch the native proof, and inspect the evidence.
+- Added tests covering the local-processing contract, pinned browser artifacts, comparison story, and product-before-proof page order.
+
 ## 1.0.0 — 2026-08-13
 
 - Reframed the product around the judge's first ten seconds: a human privacy problem, the measured outcome above the fold, and a one-click 2.6-second proof.
