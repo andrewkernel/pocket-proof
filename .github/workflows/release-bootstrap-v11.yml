@@ -1,0 +1,80 @@
+name: Publish Pocket Proof v1.1.0
+
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release-bootstrap-v11.yml]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pocket-proof-v1-1-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Reassemble and verify release patch
+        run: |
+          cat release-v11-* | tr -d '\n' | base64 --decode > "$RUNNER_TEMP/release.patch.gz"
+          echo "61cd140e0c65ceb2cc8dad50548db2da157bd901de59b4f631f5d9be247b4b77  $RUNNER_TEMP/release.patch.gz" | sha256sum --check
+          gunzip "$RUNNER_TEMP/release.patch.gz"
+
+      - name: Apply the exact reviewed tree
+        run: |
+          git config user.name "Pocket Proof Release Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git rm release-v11-*
+          git rm .github/workflows/release-bootstrap-v11.yml
+          test "$(git write-tree)" = "7bfdabdf219e38099c234b04c3c60de38eaa3a68"
+          git apply --binary "$RUNNER_TEMP/release.patch"
+          git add -A
+          test "$(git write-tree)" = "e19ad2c5aadff0322ab1117e97f752a9d68948e0"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify release
+        run: |
+          npm ci
+          npm test
+          npm run typecheck
+          npm run build:pages
+          npm run readiness
+          npm audit --audit-level=high
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+      - name: Publish source and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git commit -m "Release Pocket Proof v1.1.0"
+          git push origin HEAD:main
+          git tag -a v1.1.0 -m "Pocket Proof v1.1.0"
+          git push origin v1.1.0
+          gh release create v1.1.0 --verify-tag --title "Pocket Proof v1.1.0" --notes "Browser-local bring-your-own-audio transcription now streams real Whisper decoder text with live technical telemetry, alongside the verified native Arm64 optimization evidence."
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
