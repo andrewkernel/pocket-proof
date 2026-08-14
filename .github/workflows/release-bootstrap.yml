@@ -39,6 +39,7 @@ jobs:
           if len(parts) != 12:
               raise SystemExit(f"Expected 12 release chunks, found {len(parts)}")
           encoded = b"".join(path.read_bytes() for path in parts)
+          encoded = b"".join(encoded.split())
           archive = base64.b64decode(encoded, validate=True)
           expected = "4569f61006f16c1c8e4fb5c82fb119627072b2e17d5216213edfb0f4f9beaae5"
           actual = hashlib.sha256(archive).hexdigest()
