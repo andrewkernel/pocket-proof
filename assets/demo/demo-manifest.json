@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "title": "Pocket Proof — measured local AI optimization on Arm64",
+  "videoPath": "assets/demo/pocket-proof-demo.mp4",
+  "captionsPath": "assets/demo/pocket-proof-demo.srt",
+  "durationMs": 83070,
+  "width": 1280,
+  "height": 720,
+  "videoCodec": "H.264",
+  "audioCodec": "AAC",
+  "audioDescription": "English synthetic narration with burned-in English captions; no music.",
+  "bytes": 2432877,
+  "sha256": "d3ebf22109e054fb83c459f98f00023c3efda000acce20c94542d4dc35730ed1",
+  "captionsSha256": "cd0dfeeb31c4c91c3d20cbb448017f14ad6e47a78d30e95a87a0b09453a7e0e7",
+  "sourceFrames": [
+    { "path": "assets/demo/01-library.png", "sha256": "0cbc81691eebd6e90e73aa6e193634788fd343bdab675ee9d07c88c1a4213e70" },
+    { "path": "assets/demo/02-race.png", "sha256": "879a78bd2d6dc3701f5614917eb97cd51ee39ee6ec92a0341ea767501c422067" },
+    { "path": "assets/demo/03-corpus.png", "sha256": "c1cc37bf301ab433459185fd360d18f86a07e47c22154217b04408b888e6394d" },
+    { "path": "assets/demo/04-history.png", "sha256": "90beee9cf9d1d9dcd82c55daacd3705d06b9d1f60d9b4d03d4efabadb8797bd5" }
+  ]
+}

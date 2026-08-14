@@ -1,0 +1,39 @@
+1
+00:00:00,000 --> 00:00:08,700
+This is Pocket Proof, a local AI optimization lab running on a native Arm64 Apple M5.
+Choose one of three public-domain video presets.
+
+2
+00:00:08,700 --> 00:00:17,780
+Each preview maps to checksum-pinned audio, a reference transcript,
+and a recorded license in the SQLite catalog.
+
+3
+00:00:17,780 --> 00:00:27,800
+The benchmark runs one warm-up and five alternating measurements per profile,
+then streams the real lane and run number into Judge Mode.
+
+4
+00:00:27,800 --> 00:00:37,950
+The controlled change is FP16 to Q4_0 weights, using the same native CPU binary,
+clip, thread count, and decoder.
+
+5
+00:00:37,950 --> 00:00:49,000
+On the featured clip, Q4_0 is 1.59× faster, uses 43.7% less peak memory,
+and makes the model 70.2% smaller.
+
+6
+00:00:49,000 --> 00:01:00,050
+Across three licensed clips and 30 measured processes, median paired speedup is 1.55×,
+with a bootstrap interval from 1.49× to 1.62×.
+
+7
+00:01:00,050 --> 00:01:11,500
+Corpus WER changes from 6.9% to 8.3% because the noisy Apollo clip
+changes one additional word.
+
+8
+00:01:11,500 --> 00:01:23,050
+KleidiAI did not improve this M5 configuration, so it remains negative evidence.
+Every run stays immutable and exportable.
