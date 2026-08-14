@@ -51,12 +51,13 @@ jobs:
           tar -xzf "$bundle_path" -C .
           git rm -r --ignore-unmatch \
             .release-bundle \
-            .github/workflows/release-bootstrap.yml \
             benchmark/samples.manifest.json
           git add -A
+          git rm --cached .github/workflows/release-bootstrap.yml
           actual_tree="$(git write-tree)"
           expected_tree="d70387f83cd5edfcf66fae9598159c40a2bdec43"
           test "$actual_tree" = "$expected_tree"
+          git add .github/workflows/release-bootstrap.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "feat: publish preset corpus and submission release"
