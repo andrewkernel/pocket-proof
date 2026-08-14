@@ -6,6 +6,8 @@
 ![Target: native arm64](https://img.shields.io/badge/target-native%20arm64-9ef3c8)
 ![License: MIT](https://img.shields.io/badge/license-MIT-e8e8e8)
 
+[Hosted Judge Mode](https://andrewkernel.github.io/pocket-proof/) · [83-second captioned demo](assets/demo/pocket-proof-demo.mp4) · [Source evidence](public/featured-report.json)
+
 ![Pocket Proof social preview: a dark, cinematic local-AI optimization workspace with an audio waveform, Arm64 context, and two evidence lanes converging on a verified result panel.](assets/pocket-proof-social-preview.png)
 
 Pocket Proof is a local, reproducible optimization laboratory for speech-to-text on Arm-powered client hardware. It turns a controlled FP16→Q4_0 model-quantization experiment into an intelligible product experience: the same audio, binary architecture, and thread count are measured in two sequential lanes, then replayed as an evidence-labelled optimization race.
@@ -35,6 +37,19 @@ Measured on an Apple M5 MacBook Pro (macOS 26.5.2, 16 GB), using one warm-up and
 
 These results are device-, runtime-, model-, input-, and thread-count-specific; they are not a general Whisper or Arm performance claim. The exact output transcript matched in every primary run: “And so, my fellow Americans, ask not what your country can do for you. Ask what you can do for your country.”
 
+### Three-clip corpus validation
+
+Pocket Proof also ships a real SQLite preset database with three public-domain clips: clean JFK speech, noisy Apollo radio audio, and archival Roosevelt speech. Each record maps an MP4 preview to a checksum-pinned 16 kHz mono WAV, reference transcript, source, and license. Five measured runs per profile per clip produced 30 measured processes.
+
+| Corpus measure | FP16 | Q4_0 | Evidence |
+| --- | ---: | ---: | ---: |
+| Median real-time factor | 0.1229 | 0.0773 | Lower is better |
+| Corpus WER | 6.9% | 8.3% | Q4 changed one additional word on noisy Apollo radio |
+| Median paired speedup | — | **1.5519×** | Bootstrap 95% interval: **1.4950–1.6162×** |
+| Exact profile-to-profile transcript agreement | — | 2 of 3 clips | Both archival speech clips |
+
+The machine-readable source is [corpus-summary.json](benchmarks/corpus-summary.json); each referenced raw report is immutable and SHA-256 pinned.
+
 ![Pocket Proof Judge Mode showing the real FP16 and Q4_0 lanes on Apple M5, with artifact-derived latency, memory, and model-size evidence.](assets/screenshots/judge-mode-hero.png)
 
 ### KleidiAI ablation: not the headline
@@ -47,12 +62,13 @@ Prerequisites: native Arm64 macOS, Node.js 22+, CMake 3.27+, Python 3.9+, and su
 
 ```sh
 npm ci
+npm run media:verify
 bash scripts/setup-runtime.sh
 npm run benchmark -- --runs 5 --warmup 1 --threads 4
 npm run dev
 ```
 
-The setup script pins Arm STT-Runner, downloads `ggml-small.en.bin`, builds native Arm64 reference and KleidiAI ablation binaries, and derives the Q4_0 artifact. If CMake is installed outside `PATH`, pass its absolute executable path as `CMAKE_BIN=/path/to/cmake bash scripts/setup-runtime.sh`. Open the local address printed by Vite. `npm run benchmark` creates a new immutable, schema-validated JSON report; Judge Mode labels any visual race as a recorded replay. See [reproducibility.md](docs/reproducibility.md) and [methodology.md](docs/methodology.md).
+The setup script pins Arm STT-Runner, downloads `ggml-small.en.bin`, builds native Arm64 reference and KleidiAI ablation binaries, and derives the Q4_0 artifact. If CMake is installed outside `PATH`, pass its absolute executable path as `CMAKE_BIN=/path/to/cmake bash scripts/setup-runtime.sh`. Open the local address printed by Vite. `npm run benchmark -- --sample armstrong-small-step` selects another preset. Reports are immutable; replacing Judge Mode’s reviewed artifact requires the explicit `--promote` flag. `npm run benchmark:corpus` reruns all presets, while `npm run readiness` executes the weighted 100-point release gate. See [reproducibility.md](docs/reproducibility.md) and [methodology.md](docs/methodology.md).
 
 ## What is local
 
@@ -66,6 +82,7 @@ After the model and runtime have been provisioned, the benchmark path runs as lo
 - [Arm platform notes](docs/arm-notes.md)
 - [Reproducibility guide](docs/reproducibility.md)
 - [Demo script](docs/demo-script.md)
+- [Submission guide](docs/submission-guide.md)
 - [Research and sources](docs/research.md)
 - [Product design system](docs/design-system.md)
 - [Privacy](docs/privacy.md) and [terms](docs/terms.md)

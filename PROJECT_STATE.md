@@ -25,6 +25,9 @@ Build Pocket Proof: an interactive, reproducible optimization laboratory for loc
 - Completed an empty-directory clone rehearsal of commit `dabe806`: `npm ci`, tests, typecheck, build, runtime provisioning, checksum verification, native Arm64 inspection, a full five-run benchmark, report validation, local launch, and the browser-triggered Judge Mode race all passed.
 - Published the complete 68-file release at <https://github.com/andrewkernel/pocket-proof>. An anonymous clone matched every local Git blob and passed dependency installation, all 17 tests, typecheck, production build, the dependency audit, runtime provisioning, checksum and native Arm64 verification, a fresh five-run benchmark, and report validation.
 - Confirmed the final GitHub Actions workflow is green on `ubuntu-latest`: install, tests, typecheck, build, featured-report verification, setup-script syntax, and the dependency-free release-content secret scan all pass.
+- Added and verified a SQLite preset catalog containing three licensed public-domain video/audio clips with transcript, source, license, and checksum provenance.
+- Captured five measured FP16 and Q4_0 runs per preset (30 measured processes): 1.5519× median paired speedup with a 1.4950–1.6162× bootstrap interval; corpus WER is 6.9% versus 8.3%.
+- Added live server-sent benchmark progress, saved run history, explicit featured-artifact promotion, hosted Judge Mode automation, and an 83-second captioned demo.
 
 ## Blocked
 
@@ -44,9 +47,9 @@ Build Pocket Proof: an interactive, reproducible optimization laboratory for loc
 ## Submission risks
 
 - Challenge deadline: 2026-08-14 16:00 PDT.
-- Record and upload the optional under-three-minute demo video before final Devpost submission.
+- Upload the finished 83-second demo to a Devpost-supported public video host.
 - Complete the final Devpost fields and submit before the deadline.
 
 ## Next highest-leverage task
 
-Record the demo from `docs/demo-script.md`, add it to the Devpost entry if desired, and submit before the deadline.
+Upload `assets/demo/pocket-proof-demo.mp4`, follow `docs/submission-guide.md`, and submit before the deadline.
